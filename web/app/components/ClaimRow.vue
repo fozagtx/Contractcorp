@@ -103,11 +103,11 @@ const footer = computed(() => {
 .row {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--bg);
   padding: 16px 18px;
   transition: background 0.15s;
 }
-.row:hover { background: var(--surface); }
+.row:hover { background: var(--surface-2); }
 .row-head {
   display: block;
   width: 100%;
@@ -124,7 +124,7 @@ const footer = computed(() => {
 .secs { color: var(--ink-2); text-align: right; }
 .desc {
   display: block;
-  font-weight: 300;
+  font-weight: 400;
   color: var(--ink-2);
   margin-top: 4px;
   word-break: break-word;
@@ -141,10 +141,10 @@ const footer = computed(() => {
 .clausequote {
   border-left: 2px solid var(--line);
   padding-left: 14px;
-  font-weight: 300;
+  font-weight: 400;
 }
 .clausequote figcaption { color: var(--ink-2); margin-top: 6px; }
-.policy { font-weight: 300; }
+.policy { font-weight: 400; }
 .label {
   display: block;
   color: var(--ink-2);
@@ -153,7 +153,7 @@ const footer = computed(() => {
   letter-spacing: 0.04em;
   font-size: 11px;
 }
-.why p { font-weight: 300; }
+.why p { font-weight: 400; }
 .mem { color: var(--ink-2); }
 .when { color: var(--ink-2); }
 pre {

@@ -44,14 +44,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 <style scoped>
 h1 {
   font-size: 56px;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1;
   margin-bottom: 16px;
 }
 .sub {
   color: var(--ink-2);
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 36px;
   max-width: 560px;
 }

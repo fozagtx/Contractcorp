@@ -85,7 +85,7 @@ textarea {
   background: transparent;
   color: var(--ink);
   font-size: 17px;
-  font-weight: 300;
+  font-weight: 400;
   padding: 8px 0;
   resize: none;
   max-height: 160px;

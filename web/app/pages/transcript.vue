@@ -160,14 +160,14 @@ async function run() {
 <style scoped>
 h1 {
   font-size: 56px;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1;
   margin-bottom: 16px;
 }
 .sub {
   color: var(--ink-2);
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 32px;
   max-width: 560px;
 }
@@ -187,7 +187,7 @@ h1 {
   border-radius: var(--radius);
   cursor: pointer;
   color: var(--ink-2);
-  font-weight: 300;
+  font-weight: 400;
   text-align: center;
   padding: 16px;
   transition: background 0.15s, border-color 0.15s;
@@ -201,7 +201,7 @@ textarea {
   border-radius: var(--radius);
   background: #fff;
   padding: 10px 12px;
-  font-weight: 300;
+  font-weight: 400;
   resize: vertical;
 }
 textarea:focus { outline: none; border-color: var(--ink); }
@@ -212,7 +212,7 @@ textarea:focus { outline: none; border-color: var(--ink); }
   list-style: none;
   padding: 0;
   color: var(--ink-2);
-  font-weight: 300;
+  font-weight: 400;
   font-size: 13.5px;
   max-height: 220px;
   overflow-y: auto;

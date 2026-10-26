@@ -81,12 +81,12 @@ onMounted(refresh)
 <style scoped>
 h1 {
   font-size: 56px;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1;
   margin-bottom: 12px;
 }
-.sub { color: var(--ink-2); font-weight: 300; }
+.sub { color: var(--ink-2); font-weight: 400; }
 .stats {
   margin-top: 28px;
   display: flex;
@@ -137,7 +137,7 @@ td {
   border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
-td.claim { font-weight: 300; }
+td.claim { font-weight: 400; }
 @media (max-width: 900px) {
   h1 { font-size: 40px; }
   .stats { flex-wrap: wrap; }

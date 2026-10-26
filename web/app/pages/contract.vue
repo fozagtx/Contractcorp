@@ -31,14 +31,14 @@ const cop = useContractCop()
 <style scoped>
 h1 {
   font-size: 56px;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1;
   margin-bottom: 16px;
 }
 .sub {
   color: var(--ink-2);
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 36px;
   max-width: 560px;
 }
@@ -52,10 +52,10 @@ h1 {
 .clause header { display: flex; align-items: baseline; gap: 12px; }
 .cid { color: var(--ink-2); flex: none; }
 h2 { font-size: 19px; font-weight: 400; letter-spacing: -0.01em; }
-.ctext { margin-top: 10px; font-weight: 300; }
+.ctext { margin-top: 10px; font-weight: 400; }
 .cpol { margin-top: 14px; display: flex; gap: 8px; align-items: baseline; }
 .cpol .mono { color: var(--ink); flex: none; }
-.rule { color: var(--ink-2); font-weight: 300; }
+.rule { color: var(--ink-2); font-weight: 400; }
 @media (max-width: 900px) {
   h1 { font-size: 40px; }
 }

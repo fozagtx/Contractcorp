@@ -34,7 +34,7 @@ const links = [
   gap: 18px;
   height: 52px;
   padding: 0 24px;
-  background: var(--bg);
+  background: #fff;
   border-bottom: 1px solid var(--line);
 }
 .wordmark { font-weight: 500; font-size: 15px; letter-spacing: -0.01em; }

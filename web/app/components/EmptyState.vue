@@ -20,11 +20,11 @@ const suggestion =
   padding: 28px 18px;
   text-align: center;
 }
-.muted { color: var(--ink-2); font-weight: 300; }
+.muted { color: var(--ink-2); font-weight: 400; }
 .sugg {
   margin-top: 10px;
   color: var(--ink);
-  font-weight: 300;
+  font-weight: 400;
   min-height: 40px;
   padding: 4px 8px;
   border-radius: var(--radius);

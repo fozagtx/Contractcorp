@@ -29,7 +29,7 @@ const activeIdx = computed(() => steps.indexOf(props.pending.stage))
 .row {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--bg);
   padding: 16px 18px;
 }
 .steps { display: flex; gap: 10px; align-items: center; color: var(--ink-2); }
@@ -37,5 +37,5 @@ const activeIdx = computed(() => steps.indexOf(props.pending.stage))
 .steps .done { color: var(--green); }
 .sep { color: var(--ink-2); }
 .pline { color: var(--ink); }
-.cur { font-weight: 300; color: var(--ink-2); margin-top: 4px; }
+.cur { font-weight: 400; color: var(--ink-2); margin-top: 4px; }
 </style>

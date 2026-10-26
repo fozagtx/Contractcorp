@@ -76,7 +76,7 @@ const open = ref<string | null>(null)
 .ctext {
   display: block;
   font-size: 12.5px;
-  font-weight: 300;
+  font-weight: 400;
   color: var(--ink-2);
   line-height: 1.5;
   margin-top: 6px;

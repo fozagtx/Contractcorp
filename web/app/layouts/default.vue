@@ -33,11 +33,15 @@ onMounted(() => {
 .content {
   flex: 1;
   min-width: 0;
-  max-width: 760px;
-  padding: 48px 40px 96px;
+  max-width: 840px;
+  margin: 32px 40px 64px;
+  padding: 48px 48px 64px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
 }
-.content.wide { max-width: 860px; }
+.content.wide { max-width: 960px; }
 @media (max-width: 900px) {
-  .content { padding: 40px 20px 80px; }
+  .content { margin: 16px; padding: 32px 20px 48px; }
 }
 </style>
