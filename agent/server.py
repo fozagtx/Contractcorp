@@ -7,6 +7,7 @@ The UI is the Nuxt app in web/: `cd web && pnpm install && pnpm dev` for
 development on http://localhost:3100, or `cd web && pnpm generate` and this
 server will serve the static build at http://localhost:8600/.
 """
+import logging
 import os
 import time
 import uuid
@@ -21,6 +22,17 @@ from agent import claim_check, memory, transcript, zetaris
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 WEB_DIST = os.path.join(os.path.dirname(AGENT_DIR), "web", ".output", "public")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(message)s",
+)
+
+LOG_DIR = os.path.join(AGENT_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+logging.getLogger("contractcop.trace").addHandler(
+    logging.FileHandler(os.path.join(LOG_DIR, "trace.log"))
+)
 
 app = FastAPI(title="ContractCop")
 
@@ -78,6 +90,8 @@ def get_report(session: str):
 
 @app.get("/api/health")
 def health():
+    if zetaris.SAMPLE_MODE:
+        return {"zetaris": "sample mode"}
     checks = {}
     try:
         result = zetaris.run_sql("SELECT 1 AS one")

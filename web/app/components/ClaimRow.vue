@@ -87,7 +87,7 @@ const signedHtml = computed(() =>
     <div v-if="open" class="row-body">
       <div v-if="showSaidSigned" class="svs">
         <div class="panel">
-          <span class="plabel mono"><i class="pdot said" aria-hidden="true"></i>Rep said</span>
+          <span class="plabel mono"><i class="pdot said" aria-hidden="true"></i>Salesperson said</span>
           <p class="ptext" v-html="saidHtml"></p>
         </div>
         <div class="panel">

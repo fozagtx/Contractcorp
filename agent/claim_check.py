@@ -16,13 +16,86 @@ Safety (from the ClauseCatcher discipline):
   - alerts require a clause_id the checker actually judged contradicted
 """
 import json
+import logging
+import os
 import re
 import time
+
+import openai
+import requests
 
 from agent import llm, memory, zetaris
 
 UNRELATED = "unrelated"
 UNCLEAR = "unclear"
+
+SAMPLE_MODE = os.environ.get("SAMPLE_MODE", "").strip().lower() == "true"
+SAMPLE_MODEL = "recorded (sample mode)"
+
+# errors that mean "Nightshift is unreachable" (llm.chat re-raises these)
+CONNECTION_ERRORS = (
+    openai.APIConnectionError,
+    openai.APITimeoutError,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.Timeout,
+)
+
+trace_log = logging.getLogger("contractcop.trace")
+
+_SAMPLES_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "data", "sample_verdicts.json")
+_samples_cache: dict | None = None
+
+
+def _sample_key(claim: str) -> str:
+    return " ".join(claim.split()).lower()
+
+
+def _sample_entry(claim: str) -> dict | None:
+    global _samples_cache
+    if _samples_cache is None:
+        try:
+            _samples_cache = json.load(open(_SAMPLES_PATH))
+        except OSError:
+            _samples_cache = {}
+    return _samples_cache.get(_sample_key(claim))
+
+
+def _recorded_verdict(claim: str) -> dict:
+    """Sample-mode judge output: the recorded fixture, else unclear."""
+    entry = _sample_entry(claim)
+    if not entry:
+        return {
+            "verdict": UNCLEAR, "clause_id": None, "policy_id": None,
+            "reason": "sample mode: no recorded verdict for this claim",
+            "claim_span": None, "clause_span": None,
+        }
+    return {
+        "verdict": entry["verdict"],
+        "clause_id": entry["clause_id"],
+        "policy_id": entry["policy_id"],
+        "reason": entry["reason"],
+        "claim_span": entry["claim_span"],
+        "clause_span": entry["clause_span"],
+    }
+
+
+def _trace(session_id: str, claim: str, topic, event: dict) -> None:
+    hops = {h["hop"]: h.get("ms") for h in event.get("hops", [])}
+    trace_log.info(json.dumps({
+        "session": session_id,
+        "claim": claim,
+        "topic": topic,
+        "verdict": event.get("verdict"),
+        "clause_id": (event.get("clause") or {}).get("clause_id"),
+        "policy_id": (event.get("policy") or {}).get("policy_id"),
+        "model": event.get("model"),
+        "route_ms": hops.get("route"),
+        "sql_ms": event.get("sql_ms"),
+        "verdict_ms": hops.get("verdict"),
+        "total_ms": event.get("ms"),
+        "error": event.get("error"),
+    }))
 
 
 def _validate_span(text: str | None, span: object) -> str | None:
@@ -121,7 +194,15 @@ def _judge(claim: str, clauses: list, memories: dict) -> dict:
     if verdict not in ("contradiction", "consistent", UNCLEAR):
         verdict = UNCLEAR
     clause_id = parsed.get("clause_id")
+    if isinstance(clause_id, str):
+        m = re.fullmatch(r"(?i)clause\s+(.+)", clause_id.strip())
+        if m:
+            clause_id = m.group(1)
     policy_id = parsed.get("policy_id")
+    if isinstance(policy_id, str):
+        m = re.fullmatch(r"(?i)policy\s+(.+)", policy_id.strip())
+        if m:
+            policy_id = m.group(1)
     if verdict == "contradiction" and not clause_id:
         # an alert requires an evidence clause the checker named
         verdict = UNCLEAR
@@ -144,24 +225,55 @@ def check_claim(session_id: str, claim: str) -> dict:
         memories = memory.recall(session_id, claim)
     except Exception as error:  # a memory failure must not kill the check
         hops.append({"hop": "memory", "detail": str(error)[:120]})
+    topic = None
+    model = llm.MODEL
     try:
         t0 = time.time()
-        route = _route(claim)
+        try:
+            route = _route(claim)
+        except CONNECTION_ERRORS:
+            if not SAMPLE_MODE:
+                raise
+            entry = _sample_entry(claim)
+            if not entry:
+                event = {
+                    "claim": claim, "verdict": UNCLEAR, "clause": None,
+                    "policy": None,
+                    "reason": "sample mode: no recorded verdict for this claim",
+                    "memory": memories, "hops": hops,
+                    "sql": None, "model": SAMPLE_MODEL,
+                    "spans": {"claim": None, "clause": None},
+                    "ms": int((time.time() - started) * 1000),
+                }
+                memory.remember(session_id, claim, UNCLEAR)
+                _trace(session_id, claim, topic, event)
+                return event
+            route = {"topic": entry["topic"]}
+            model = SAMPLE_MODEL
         hops.append({"hop": "route", "ms": int((time.time() - t0) * 1000)})
+        topic = route["topic"]
         if route["topic"] is None:
             memory.remember(session_id, claim, UNRELATED)
-            return {
+            event = {
                 "claim": claim, "verdict": UNRELATED, "clause": None,
                 "policy": None, "memory": memories, "hops": hops,
-                "sql": None, "model": llm.MODEL,
+                "sql": None, "model": model,
                 "spans": {"claim": None, "clause": None},
                 "ms": int((time.time() - started) * 1000),
             }
+            _trace(session_id, claim, topic, event)
+            return event
         fetched = zetaris.fetch_topic(route["topic"])
         if not fetched["clauses"]:
             raise zetaris.ZetarisError(f"no rows for topic {route['topic']}")
         t1 = time.time()
-        verdict = _judge(claim, fetched["clauses"], memories)
+        try:
+            verdict = _judge(claim, fetched["clauses"], memories)
+        except CONNECTION_ERRORS:
+            if not SAMPLE_MODE:
+                raise
+            verdict = _recorded_verdict(claim)
+            model = SAMPLE_MODEL
         hops.append({"hop": "verdict", "ms": int((time.time() - t1) * 1000)})
         clause = next((c for c in fetched["clauses"]
                        if c["clause_id"] == verdict["clause_id"]), None)
@@ -175,7 +287,7 @@ def check_claim(session_id: str, claim: str) -> dict:
                     clause["text"], verdict.get("clause_span"))
         memory.remember(session_id, claim, verdict["verdict"],
                         verdict["clause_id"], verdict["policy_id"])
-        return {
+        event = {
             "spans": spans,
             "claim": claim,
             "verdict": verdict["verdict"],
@@ -187,17 +299,21 @@ def check_claim(session_id: str, claim: str) -> dict:
             "hops": hops,
             "sql": fetched["sql"],
             "sql_ms": fetched["ms"],
-            "model": llm.MODEL,
+            "model": model,
             "ms": int((time.time() - started) * 1000),
         }
+        _trace(session_id, claim, topic, event)
+        return event
     except Exception as error:  # never accuse on failure
         memory.remember(session_id, claim, UNCLEAR)
         hops.append({"hop": "error", "detail": str(error)[:200]})
-        return {
+        event = {
             "claim": claim, "verdict": UNCLEAR, "clause": None,
             "policy": None, "memory": memories, "hops": hops,
-            "sql": None, "model": llm.MODEL,
+            "sql": None, "model": model,
             "spans": {"claim": None, "clause": None},
             "error": str(error)[:200],
             "ms": int((time.time() - started) * 1000),
         }
+        _trace(session_id, claim, topic, event)
+        return event

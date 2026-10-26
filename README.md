@@ -1,13 +1,19 @@
 # ContractCop
 
-Compliance guardian for sales calls. Paste what the rep said, or upload the call transcript, and every claim is checked against the signed contract. Each verdict cites the clause text, the policy rule, the SQL that fetched them, and the model that judged.
+Compliance guardian for sales calls. Paste what the salesperson said on the call, or upload the call transcript, and every claim is checked against the signed contract. Each verdict cites the clause text, the policy rule, the SQL that fetched them, and the model that judged.
 
-Built for the Open Agent Hackathon 2026 on its three required layers: **Zetaris** (data), **Meterless Nightshift** with the **H-Mem** engine (build), and **NVIDIA Nemotron** served through Nightshift (power).
+<p>
+  <a href="https://www.zetaris.com"><img src="assets/sponsors/zetaris.svg" alt="Zetaris" height="36"></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://meterless.ai"><img src="assets/sponsors/meterless.svg" alt="Meterless" height="36" valign="middle"> <b>Meterless Nightshift</b></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://build.nvidia.com"><img src="assets/sponsors/nvidia.svg" alt="NVIDIA" height="30"></a>
+</p>
+
+Data layer by Zetaris, AI provider and H-Mem engine by Meterless Nightshift, model NVIDIA Nemotron.
 
 ## Features
 
 - Claim check in one line: type a sentence, get `contradiction`, `consistent`, `unclear` or `unrelated`
-- Transcript mode: upload `.txt`, `.md`, `.vtt`, `.srt`, `.csv` or paste the call; timestamps and speaker labels are parsed, rep-side lines are checked one by one with progress
+- Transcript mode: upload `.txt`, `.md`, `.vtt`, `.srt`, `.csv` or paste the call; timestamps and speaker labels are parsed, salesperson-side lines are checked one by one with progress
 - Evidence on every alert: verbatim clause from Zetaris, policy rule, reason, SQL, model id, per-hop latency
 - H-Mem memory: repeated or reworded claims are flagged with the earlier claim, within the call and across calls (persists in SQLite)
 - End-of-call report: timeline of every claim and verdict for the session
@@ -16,7 +22,7 @@ Built for the Open Agent Hackathon 2026 on its three required layers: **Zetaris*
 ## How it works
 
 ```
-rep line
+salesperson line
   -> route (Nemotron): pick a topic or mark it unrelated
   -> Zetaris: one cross-source JOIN, contract clauses + sales policy
   -> verdict (Nemotron): strict JSON with clause_id and reason, plus H-Mem memories
@@ -31,7 +37,7 @@ rep line
 
 ## Prerequisites
 
-- Python 3.12+ and a virtualenv with `fastapi`, `uvicorn`, `requests`, `python-dotenv`, `pytest`
+- Python 3.12+ and a virtualenv with `pip install -r requirements.txt`
 - Node 20+ and `pnpm`
 - Zetaris running locally (REST on `localhost:8888`) with an API key
 - Meterless Nightshift running locally with the NVIDIA provider connected (Runtime on `127.0.0.1:8088`)
@@ -42,7 +48,7 @@ Environment setup is documented step by step in [setup.md](setup.md).
 
 ```bash
 cp .env.example .env          # fill in the Zetaris key and the Nightshift token
-python3 -m venv .venv && .venv/bin/pip install fastapi uvicorn requests python-dotenv pytest
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python smoke_test.py          # Zetaris + Nemotron reachable
 
 .venv/bin/uvicorn agent.server:app --port 8600   # agent API
@@ -51,15 +57,28 @@ cd web && pnpm install && pnpm dev               # UI on http://localhost:3100
 
 For a single-port build: `cd web && pnpm generate`, then the agent on `http://localhost:8600` serves the UI.
 
+### Run without Zetaris or Nightshift
+
+```bash
+SAMPLE_MODE=true .venv/bin/uvicorn agent.server:app --port 8600
+```
+
+Sample mode serves the contract clauses and policy rules from the local
+fixtures in `agent/data/` instead of Zetaris (the SQL on each card is the real
+statement, marked as fixture-served). When Nightshift is unreachable the
+verdicts come from recorded model runs in `agent/data/sample_verdicts.json`;
+those cards show `recorded (sample mode)` as the model, and a claim with no
+recording resolves to `unclear`.
+
 ## Usage
 
-Try these in the composer:
+Sample inputs and outputs (captured from live runs):
 
-```
-We will give you the 10 percent automatic discount, no approval needed.   -> contradiction, Clause 3.1
-On the Standard Plan, support is 9:00 to 17:00, Monday through Friday.    -> consistent, Clause 4.2
-You will have 24/7 support on the Standard Plan, guaranteed.              -> contradiction, Clause 4.2
-```
+| Claim | Verdict | Clause | Reason | Model | Total |
+|---|---|---|---|---|---|
+| We will give you the 10 percent automatic discount, no approval needed. | contradiction | 3.1, Fees and Discounts | Claim states 10% discount is automatic and needs no approval, but clause 3.1 requires written VP approval for any discount above 10%. | nvidia/nemotron-3.5-lightning-30b-a3b | 4.1s |
+| On the Standard Plan, support is 9:00 to 17:00, Monday through Friday. | consistent | 4.2, Support | The claim matches the hours specified in clause 4.2. | nvidia/nemotron-3.5-lightning-30b-a3b | 2.2s |
+| You will have 24/7 support on the Standard Plan, guaranteed. | contradiction | 4.2, Support | CL4.2 limits Standard Plan support to 9:00 to 17:00, Monday through Friday, excluding public holidays. | nvidia/nemotron-3.5-lightning-30b-a3b | 4.0s |
 
 API, if you want to skip the UI:
 
@@ -77,6 +96,9 @@ curl -s localhost:8600/api/health
 .venv/bin/python -m pytest agent/tests -q                 # unit tests, no backends needed
 .venv/bin/python -m pytest agent/tests/test_zetaris.py -q # live: needs Zetaris + Nightshift
 ```
+
+Every check writes a one-line JSON trace to `agent/logs/trace.log` with
+topic, clause, verdict, model and per-hop timings.
 
 Measured on the labeled fixture (`agent/tests/labeled_claims.json`): 5/5 contradictions caught with the right clause id, 3/3 consistent claims with zero false accusations, 2/2 unrelated lines ignored, 10/12 strict overall. Median latency 2.7 to 2.9 s per claim with Nemotron reasoning disabled.
 

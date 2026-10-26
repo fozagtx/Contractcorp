@@ -36,3 +36,4 @@ web/.nuxt/
 web/.output/
 web/.data/
 web/dist/
+agent/logs/

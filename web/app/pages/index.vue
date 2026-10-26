@@ -25,8 +25,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     <section class="hero">
       <h1>Every claim, <em>checked</em> against the signed contract.</h1>
       <p class="sub">
-        Paste what the rep said. The verdict cites the clause, the policy, the
-        SQL and the model.
+        Type one sentence a salesperson said to a customer. ContractCop checks it
+        against the signed contract and shows the exact clause, the policy rule,
+        the database query and the model behind the answer.
       </p>
       <ClaimComposer
         ref="composer"

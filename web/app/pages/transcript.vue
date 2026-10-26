@@ -54,7 +54,7 @@ async function parse() {
   try {
     const lines = await cop.parseTranscript(text.value)
     if (!lines.length) {
-      info.value = 'No rep lines found in that transcript.'
+      info.value = 'No salesperson lines found in that transcript.'
       parsed.value = null
       return
     }
@@ -85,8 +85,8 @@ async function run() {
     <section class="side">
       <h1>Check a <em>whole</em> call.</h1>
       <p class="sub">
-        Drop a transcript file or paste it. Rep lines are checked against the
-        contract one by one.
+        Upload or paste the call transcript. Every sentence the salesperson said
+        is checked against the contract, one by one.
       </p>
 
       <label
@@ -127,7 +127,7 @@ async function run() {
 
       <div v-if="parsed" class="lines">
         <p class="info mono">
-          {{ parsed.length }} rep lines found · {{ chosen.length }} selected
+          {{ parsed.length }} salesperson lines found · {{ chosen.length }} selected
         </p>
         <ul class="preview">
           <li v-for="(l, i) in parsed" :key="i">

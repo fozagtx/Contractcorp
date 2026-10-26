@@ -1,7 +1,7 @@
 <template>
   <div class="empty">
     <p class="serif">No claims yet.</p>
-    <p class="hint">Type what the rep said, or run a whole transcript.</p>
+    <p class="hint">Type one sentence from the call, or check a whole transcript.</p>
   </div>
 </template>
 

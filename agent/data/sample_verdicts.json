@@ -1,0 +1,110 @@
+{
+  "we'll give you the 10 percent automatic discount on this order, no approval needed.": {
+    "topic": "discounts",
+    "verdict": "contradiction",
+    "clause_id": "3.1",
+    "policy_id": "POL-01",
+    "reason": "Claim states 10% discount is automatic and needs no approval, but clause 3.1 requires written approval for any discount >10% and POL-01 requires pre-approval before mention.",
+    "claim_span": "We'll give you the 10 percent automatic discount on this order, no approval needed.",
+    "clause_span": "No discount is automatic. Any discount greater than ten percent (10%) requires prior written approval from the VP of Sales"
+  },
+  "you get 24/7 support on the standard plan.": {
+    "topic": "support",
+    "verdict": "contradiction",
+    "clause_id": "4.2",
+    "policy_id": "POL-02",
+    "reason": "CLAUSE 4.2 states support under the Standard Plan is available 9:00 to 17:00 local time, Monday through Friday, excluding public holidays.",
+    "claim_span": "You get 24/7 support on the Standard Plan.",
+    "clause_span": "Support under the Standard Plan is available 9:00 to 17:00 local time, Monday through Friday, excluding public holidays."
+  },
+  "we promise 99.9 percent uptime on your standard plan subscription.": {
+    "topic": "uptime",
+    "verdict": "contradiction",
+    "clause_id": "9.1",
+    "policy_id": "POL-04",
+    "reason": "CLAUSE 9.1 caps service credits at 15% and states uptime commitments above the plan target are not made, while POLICY POL-04 reserves 99.9% uptime commitments for Enterprise Plan quotes only.",
+    "claim_span": "We promise 99.9 percent uptime on your Standard Plan subscription.",
+    "clause_span": "uptime commitments above the plan target are not made"
+  },
+  "if you terminate early, we will refund the fees for the remaining months.": {
+    "topic": "termination",
+    "verdict": "contradiction",
+    "clause_id": "8.3",
+    "policy_id": "POL-05",
+    "reason": "Claim promises refunds for remaining months, but clause 8.3 states termination does not entitle customer to a refund of prepaid fees.",
+    "claim_span": "If you terminate early, we will refund the fees for the remaining months.",
+    "clause_span": "Termination does not entitle Customer to a refund of prepaid fees for the remainder of the term."
+  },
+  "we can move your data to another region whenever it suits you.": {
+    "topic": "data_residency",
+    "verdict": "contradiction",
+    "clause_id": "6.1",
+    "policy_id": "POL-03",
+    "reason": "Claim states data can be moved 'whenever it suits you', but Clause 6.1 requires prior written consent for any transfer.",
+    "claim_span": "We can move your data to another region whenever it suits you.",
+    "clause_span": "Customer data is stored in the region selected at signup and is not transferred to another region without Customer's prior written consent."
+  },
+  "on the standard plan, support is available 9:00 to 17:00, monday through friday.": {
+    "topic": "support",
+    "verdict": "consistent",
+    "clause_id": "4.2",
+    "policy_id": "POL-02",
+    "reason": "The claim matches the hours specified in Clause 4.2.",
+    "claim_span": "On the Standard Plan, support is available 9:00 to 17:00, Monday through Friday.",
+    "clause_span": "Support under the Standard Plan is available 9:00 to 17:00 local time, Monday through Friday, excluding public holidays."
+  },
+  "any discount above ten percent has to be approved in writing by the vp of sales first.": {
+    "topic": "discounts",
+    "verdict": "contradiction",
+    "clause_id": "3.1",
+    "policy_id": "POL-01",
+    "reason": "Rep claim states discount above 10% requires written VP approval, but clause 3.1 states verbal commitments are not binding.",
+    "claim_span": "Any discount above ten percent has to be approved in writing by the VP of Sales first.",
+    "clause_span": "Verbal discount commitments are not binding."
+  },
+  "either party can end the agreement for convenience with thirty days written notice.": {
+    "topic": "termination",
+    "verdict": "consistent",
+    "clause_id": "8.3",
+    "policy_id": null,
+    "reason": "The rep's claim directly mirrors the exact language of Clause 8.3 regarding termination for convenience.",
+    "claim_span": "Either party can end the agreement for convenience with thirty days written notice.",
+    "clause_span": "Either party may terminate this Agreement for convenience with thirty (30) days written notice."
+  },
+  "we might be able to do something on the price if you sign today.": {
+    "topic": "discounts",
+    "verdict": "contradiction",
+    "clause_id": "3.1",
+    "policy_id": "POL-01",
+    "reason": "Rep claimed a price concession is possible without written VP approval, violating clause 3.1 and policy POL-01.",
+    "claim_span": "We might be able to do something on the price if you sign today.",
+    "clause_span": "No discount is automatic. Any discount greater than ten percent (10%) requires prior written approval from the VP of Sales"
+  },
+  "our uptime is really good, trust me on that.": {
+    "topic": "uptime",
+    "verdict": "contradiction",
+    "clause_id": "9.1",
+    "policy_id": "POL-04",
+    "reason": "Rep claimed 'uptime is really good' without specifying 99.5% or 99.9% targets, contradicting the contractual service level commitments.",
+    "claim_span": "Our uptime is really good, trust me on that.",
+    "clause_span": "The service targets 99.5% monthly uptime on the Standard Plan and 99.9% monthly uptime on the Enterprise Plan."
+  },
+  "how about that game last night?": {
+    "topic": null,
+    "verdict": "unrelated",
+    "clause_id": null,
+    "policy_id": null,
+    "reason": "nothing a contract could contradict",
+    "claim_span": null,
+    "clause_span": null
+  },
+  "i'll send the deck over after this call.": {
+    "topic": null,
+    "verdict": "unrelated",
+    "clause_id": null,
+    "policy_id": null,
+    "reason": "nothing a contract could contradict",
+    "claim_span": null,
+    "clause_span": null
+  }
+}

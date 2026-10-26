@@ -57,8 +57,8 @@ defineExpose({
         ref="ta"
         v-model="draft"
         rows="1"
-        placeholder="What did the rep just say?"
-        aria-label="What the rep just said"
+        placeholder="What did the salesperson say?"
+        aria-label="What the salesperson said"
         @keydown="onKeydown"
         @input="autosize"
       ></textarea>
