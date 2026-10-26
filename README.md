@@ -15,7 +15,7 @@ contract, never from the model.
 ## The loop
 
 ```
-rep line (typed in the cockpit)
+rep line (typed in the app)
    │
    ├─ route (Nemotron): which topic? discounts | support | data_residency | termination | uptime | none
    │
@@ -52,7 +52,7 @@ the verdict is `unclear`, never an accusation.
   engine exists for.
 - Proof: `pytest agent/tests/test_memory.py` (6 conformance tests,
   including restart persistence) plus the live cross-session demo in the
-  cockpit.
+  app.
 
 ## Measured results (honest, from live runs)
 
@@ -84,22 +84,27 @@ cd web && pnpm install && pnpm dev   # UI on http://localhost:3100
 # or: cd web && pnpm generate, then open http://127.0.0.1:8600 (served build)
 ```
 
-The cockpit needs the workspace `.env` (Zetaris REST + API key + the
+The app needs the workspace `.env` (Zetaris REST + API key + the
 Nightshift route), all gitignored.
 
 ## Repo layout
 
 ```
-agent/
-├── llm.py           # Nemotron over the Nightshift Runtime (POWER)
-├── zetaris.py       # run_sql + the cross-source clause JOIN (DATA)
-├── memory.py        # H-Mem engine: persistent claim memory (BUILD)
-├── claim_check.py   # the bounded two-hop claim-check loop + safety rules
-├── transcript.py     # parse pasted/uploaded call transcripts into rep lines
-├── server.py        # FastAPI: /api/claim, /api/transcript, /api/clauses, /api/report, /api/health
-└── (UI lives in web/, a Nuxt app: transcript, alerts, rail, report)
-├── tests/           # unit + integration + the labeled-claims accuracy fixture
-└── data/            # contract + policy fixtures (also served via gist to Zetaris)
+agent/                   # the Python agent (FastAPI on :8600)
+├── llm.py               # Nemotron over the Nightshift Runtime (POWER)
+├── zetaris.py           # run_sql + the cross-source clause JOIN (DATA)
+├── memory.py            # H-Mem engine: persistent claim memory (BUILD)
+├── claim_check.py       # the bounded two-hop claim-check loop + safety rules
+├── transcript.py        # parse pasted/uploaded call transcripts into rep lines
+├── server.py            # /api/claim, /api/transcript, /api/clauses, /api/report, /api/health
+├── tests/               # unit + integration + the labeled-claims accuracy fixture
+└── data/                # contract + policy fixtures (also served via gist to Zetaris)
+web/                     # the UI: Nuxt 4 app (dev :3100, or pnpm generate -> served on :8600)
+├── app/components/      # TopBar, ClauseRail, ClaimComposer, ClaimRow, TranscriptDialog, ReportDialog
+├── app/composables/     # useContractCop.ts: session, events, transcript run, report
+└── app/pages/index.vue
+setup.md                 # environment runbook (Zetaris, Nightshift, NVIDIA key)
+smoke_test.py            # three-layer smoke test
 ```
 
 ## Demo script (2 minutes)
