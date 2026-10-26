@@ -1,121 +1,104 @@
 # ContractCop
 
-A grounded compliance guardian for sales calls: the rep says something, and
-ContractCop checks it against the signed contract stored in **Zetaris**,
-judged by **NVIDIA Nemotron served through Meterless Nightshift**, with
-persistent claim memory (**Meterless H-Mem engine**) so repeats get caught
-with receipts.
+Compliance guardian for sales calls. Paste what the rep said, or upload the call transcript, and every claim is checked against the signed contract. Each verdict cites the clause text, the policy rule, the SQL that fetched them, and the model that judged.
 
-Built for the Open Agent Hackathon 2026. Inspired by the live-voice
-ClauseCatcher (sales-call compliance on AssemblyAI); this version is
-text-first and re-grounded on the hackathon's three layers, with the
-claim-check discipline kept: the words in every alert come from the
-contract, never from the model.
+Built for the Open Agent Hackathon 2026 on its three required layers: **Zetaris** (data), **Meterless Nightshift** with the **H-Mem** engine (build), and **NVIDIA Nemotron** served through Nightshift (power).
 
-## The loop
+## Features
+
+- Claim check in one line: type a sentence, get `contradiction`, `consistent`, `unclear` or `unrelated`
+- Transcript mode: upload `.txt`, `.md`, `.vtt`, `.srt`, `.csv` or paste the call; timestamps and speaker labels are parsed, rep-side lines are checked one by one with progress
+- Evidence on every alert: verbatim clause from Zetaris, policy rule, reason, SQL, model id, per-hop latency
+- H-Mem memory: repeated or reworded claims are flagged with the earlier claim, within the call and across calls (persists in SQLite)
+- End-of-call report: timeline of every claim and verdict for the session
+- Safety rules: clause text is never written by the model; a contradiction needs a clause id the judge actually named; any provider, parse or network error resolves to `unclear`
+
+## How it works
 
 ```
-rep line (typed in the app)
-   │
-   ├─ route (Nemotron): which topic? discounts | support | data_residency | termination | uptime | none
-   │
-   ├─ Zetaris (one cross-source JOIN query):
-   │     contract clauses  ⋈  sales policy rules        ← two REST sources, one query
-   │
-   ├─ verdict (Nemotron): STRICT JSON: contradiction | consistent | unclear, clause_id, reason
-   │     + H-Mem memories of earlier claims (this call and earlier calls)
-   │
-   └─ alert card: verbatim clause text (from Zetaris) + policy + reason
-        + memory refs + the SQL + the model + per-hop latencies
+rep line
+  -> route (Nemotron): pick a topic or mark it unrelated
+  -> Zetaris: one cross-source JOIN, contract clauses + sales policy
+  -> verdict (Nemotron): strict JSON with clause_id and reason, plus H-Mem memories
+  -> alert: clause text from Zetaris, policy, reason, memory refs, SQL, model, timings
 ```
 
-Nothing the model writes ever reaches the alert text. The clause words are
-fetched from Zetaris by clause_id. On any error (provider, parse, network),
-the verdict is `unclear`, never an accusation.
+| Layer | Where |
+|---|---|
+| Data: Zetaris | `agent/zetaris.py`, live REST queries; contract and policy registered as two REST tables and joined in one statement |
+| Build: Meterless engine | `agent/memory.py`, H-Mem persistent claim memory with word-overlap recall |
+| Power: Nemotron via Nightshift | `agent/llm.py`, OpenAI-compatible client on the Nightshift Runtime, model `nvidia/nemotron-3.5-lightning-30b-a3b` |
 
-## The three layers (hackathon requirements)
+## Prerequisites
 
-| Layer | Requirement | Where it lives |
-|---|---|---|
-| DATA | Zetaris must be used | `agent/zetaris.py`: every clause lookup is a live REST query; two sources (contract gist + policy gist) registered as Zetaris REST tables and JOINed in one statement (`clauseguard.contract_flat` ⋈ `clauseguard.policy_flat`) |
-| BUILD | 1+ Meterless Engine in working code | **H-Mem**, in `agent/memory.py`: persistent SQLite claim memory with word-overlap recall; conformance tests in `agent/tests/test_memory.py` |
-| POWER | Nightshift primary provider, Nemotron via Nightshift | `agent/llm.py`: OpenAI-compatible client pointed at the Nightshift Runtime (`127.0.0.1:8088/v1`), model `nvidia/nemotron-3.5-lightning-30b-a3b`, headers `meterless-app` / `meterless-scope`; Nightshift receipts show which model served each request |
+- Python 3.12+ and a virtualenv with `fastapi`, `uvicorn`, `requests`, `python-dotenv`, `pytest`
+- Node 20+ and `pnpm`
+- Zetaris running locally (REST on `localhost:8888`) with an API key
+- Meterless Nightshift running locally with the NVIDIA provider connected (Runtime on `127.0.0.1:8088`)
 
-## Why H-Mem is load-bearing, not decorative
+Environment setup is documented step by step in [setup.md](setup.md).
 
-- **Within a call:** the rep repeats a contradicted commitment → the new
-  alert carries the earlier claim with its timestamp and verdict
-  ("earlier this call at 18:35 you said X, contradiction Clause 3.1").
-- **Across calls:** a later session recalls the same contradicted
-  commitments from previous sessions; memory survives restarts
-  (SQLite at `agent/memory.db`), which is exactly the persistence the
-  engine exists for.
-- Proof: `pytest agent/tests/test_memory.py` (6 conformance tests,
-  including restart persistence) plus the live cross-session demo in the
-  app.
-
-## Measured results (honest, from live runs)
-
-- **Contradictions: 5/5 caught, each with the correct clause ID** (Clause 3.1
-  automatic discount, Clause 4.2 24/7-on-Standard, Clause 9.1 99.9%-on-Standard,
-  Clause 8.3 early-termination refund, Clause 6.1 region move on demand). Reproduce:
-  `pytest agent/tests/test_zetaris.py` (needs Zetaris + Nightshift up).
-- **Consistent claims: 3/3, zero false accusations** (Clause 4.2, Clause 3.1, Clause 8.3).
-- **Unrelated lines: 2/2** correctly ignored (no clause lookup at all).
-- **Fixture accuracy: 10/12 strict.** The two misses are the fixture's
-  "unclear" labels: "we might be able to do something on the price" and
-  "our uptime is really good, trust me" were judged contradictions citing
-  Clause 3.1 (verbal price commitments) and Clause 9.1 (uptime commitments above
-  target). Defensible readings: both clauses literally prohibit verbal
-  commitments, reported as-is rather than tuned away.
-- **Latency: median 2.7–2.9 s per claim** end to end (route hop + Zetaris
-  JOIN + verdict hop), with Nemotron 3.5 run with thinking disabled and a
-  retry on transient empty responses. With default reasoning the verdict
-  hop alone was 19 s.
-- Unit suite: 11/11 pass in 0.25 s (no backends needed). Integration suite:
-  4/4 pass in ~40 s.
-
-## Run it
+## Getting started
 
 ```bash
-# from ~/Desktop/openagent, with Zetaris up and Nightshift running
-.venv/bin/uvicorn agent.server:app --port 8600
-cd web && pnpm install && pnpm dev   # UI on http://localhost:3100
-# or: cd web && pnpm generate, then open http://127.0.0.1:8600 (served build)
+cp .env.example .env          # fill in the Zetaris key and the Nightshift token
+python3 -m venv .venv && .venv/bin/pip install fastapi uvicorn requests python-dotenv pytest
+.venv/bin/python smoke_test.py          # Zetaris + Nemotron reachable
+
+.venv/bin/uvicorn agent.server:app --port 8600   # agent API
+cd web && pnpm install && pnpm dev               # UI on http://localhost:3100
 ```
 
-The app needs the workspace `.env` (Zetaris REST + API key + the
-Nightshift route), all gitignored.
+For a single-port build: `cd web && pnpm generate`, then the agent on `http://localhost:8600` serves the UI.
+
+## Usage
+
+Try these in the composer:
+
+```
+We will give you the 10 percent automatic discount, no approval needed.   -> contradiction, Clause 3.1
+On the Standard Plan, support is 9:00 to 17:00, Monday through Friday.    -> consistent, Clause 4.2
+You will have 24/7 support on the Standard Plan, guaranteed.              -> contradiction, Clause 4.2
+```
+
+API, if you want to skip the UI:
+
+```bash
+curl -s localhost:8600/api/claim -H 'content-type: application/json' \
+  -d '{"session":"demo","text":"We will honor a 99.99 percent uptime guarantee on Standard."}'
+curl -s localhost:8600/api/transcript -H 'content-type: application/json' -d '{"text":"<transcript>"}'
+curl -s 'localhost:8600/api/report?session=demo'
+curl -s localhost:8600/api/health
+```
+
+## Tests
+
+```bash
+.venv/bin/python -m pytest agent/tests -q                 # unit tests, no backends needed
+.venv/bin/python -m pytest agent/tests/test_zetaris.py -q # live: needs Zetaris + Nightshift
+```
+
+Measured on the labeled fixture (`agent/tests/labeled_claims.json`): 5/5 contradictions caught with the right clause id, 3/3 consistent claims with zero false accusations, 2/2 unrelated lines ignored, 10/12 strict overall. Median latency 2.7 to 2.9 s per claim with Nemotron reasoning disabled.
 
 ## Repo layout
 
 ```
-agent/                   # the Python agent (FastAPI on :8600)
-├── llm.py               # Nemotron over the Nightshift Runtime (POWER)
-├── zetaris.py           # run_sql + the cross-source clause JOIN (DATA)
-├── memory.py            # H-Mem engine: persistent claim memory (BUILD)
-├── claim_check.py       # the bounded two-hop claim-check loop + safety rules
-├── transcript.py        # parse pasted/uploaded call transcripts into rep lines
-├── server.py            # /api/claim, /api/transcript, /api/clauses, /api/report, /api/health
-├── tests/               # unit + integration + the labeled-claims accuracy fixture
-└── data/                # contract + policy fixtures (also served via gist to Zetaris)
-web/                     # the UI: Nuxt 4 app (dev :3100, or pnpm generate -> served on :8600)
-├── app/components/      # TopBar, ClauseRail, ClaimComposer, ClaimRow, TranscriptDialog, ReportDialog
-├── app/composables/     # useContractCop.ts: session, events, transcript run, report
-└── app/pages/index.vue
-setup.md                 # environment runbook (Zetaris, Nightshift, NVIDIA key)
-smoke_test.py            # three-layer smoke test
+agent/            Python agent and FastAPI API (:8600)
+  claim_check.py  route -> Zetaris -> verdict loop and safety rules
+  llm.py          Nemotron over the Nightshift Runtime
+  zetaris.py      run_sql and the cross-source clause JOIN
+  memory.py       H-Mem persistent claim memory
+  transcript.py   transcript parser
+  server.py       /api/claim /api/transcript /api/clauses /api/report /api/health
+  data/           demo contract and policy (served to Zetaris from a public gist)
+  tests/
+web/              Nuxt 4 UI (:3100 in dev)
+setup.md          environment runbook
+smoke_test.py     three-layer smoke test
 ```
 
-## Safety rules (kept from the claim-check discipline)
+## Troubleshooting
 
-- Clause text is always literal, always from Zetaris, keyed by clause_id.
-- The routed topic is whitelist-validated before it can touch SQL.
-- A contradiction requires a clause_id the checker actually named.
-- Errors resolve to `unclear`, never to an accusation.
-
-## Sources
-
-Demo contract and policy data live in `agent/data/` and are served to
-Zetaris from a public gist, registered as two REST tables. Zetaris cannot
-read laptop files, so the gist is the reachable storage for the demo data.
+- `unclear` on every claim: Nightshift is not running or the Runtime token in `.env` is wrong. `curl -s 127.0.0.1:8088/v1/models` should list `nvidia/nemotron-3.5-lightning-30b-a3b`.
+- Clause rail empty: Zetaris is down or the API key is wrong. `curl -s localhost:8600/api/health` should return `{"zetaris":"ok"}`.
+- Port 3000 is used by Zetaris, which is why the UI runs on 3100.
