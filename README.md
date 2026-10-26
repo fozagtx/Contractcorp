@@ -107,25 +107,6 @@ setup.md                 # environment runbook (Zetaris, Nightshift, NVIDIA key)
 smoke_test.py            # three-layer smoke test
 ```
 
-## Demo script (2 minutes)
-
-1. Open the app; the rail loads the five clauses straight from Zetaris.
-2. Type: `And of course we will give you the 10 percent automatic discount
-   on this deal, no paperwork needed.` → alert card: contradiction Clause 3.1,
-   verbatim clause, POL-01, the SQL that found it, model + latencies.
-3. Type: `On the Standard Plan, support is available 9:00 to 17:00, Monday
-   through Friday.` → consistent Clause 4.2. (Errors never accuse: kill Nightshift
-   mid-call and the next line is `unclear`, with the error shown.)
-4. Type the discount line again, reworded → contradiction Clause 3.1 **with an
-   H-Mem memory ref to the earlier claim in the same call**.
-5. Change the session id and repeat → the alert cites the earlier **call**.
-6. End-of-call report → timeline of every claim and verdict.
-7. Click **Check a transcript** and paste or upload a full call transcript
-   (timestamps and speaker labels are parsed; rep-side lines are checked one
-   by one, with progress, and H-Mem carries claims across lines).
-8. (Optional, for the award) open Nightshift and show the run receipts: the
-   checks were served by `nvidia/nemotron-3.5-lightning-30b-a3b`.
-
 ## Safety rules (kept from the claim-check discipline)
 
 - Clause text is always literal, always from Zetaris, keyed by clause_id.
