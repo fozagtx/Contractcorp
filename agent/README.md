@@ -80,7 +80,8 @@ the verdict is `unclear`, never an accusation.
 ```bash
 # from ~/Desktop/openagent, with Zetaris up and Nightshift running
 .venv/bin/uvicorn agent.server:app --port 8600
-# open http://127.0.0.1:8600
+cd web && pnpm install && pnpm dev   # UI on http://localhost:3100
+# or: cd web && pnpm generate, then open http://127.0.0.1:8600 (served build)
 ```
 
 The cockpit needs the workspace `.env` (Zetaris REST + API key + the
@@ -96,14 +97,14 @@ agent/
 ├── claim_check.py   # the bounded two-hop claim-check loop + safety rules
 ├── transcript.py     # parse pasted/uploaded call transcripts into rep lines
 ├── server.py        # FastAPI: /api/claim, /api/transcript, /api/clauses, /api/report, /api/health
-├── cockpit/         # single-file text-first cockpit (transcript, alerts, rail, report)
+└── (UI lives in web/, a Nuxt app: transcript, alerts, rail, report)
 ├── tests/           # unit + integration + the labeled-claims accuracy fixture
 └── data/            # contract + policy fixtures (also served via gist to Zetaris)
 ```
 
 ## Demo script (2 minutes)
 
-1. Open the cockpit; the rail loads the five clauses straight from Zetaris.
+1. Open the app; the rail loads the five clauses straight from Zetaris.
 2. Type: `And of course we will give you the 10 percent automatic discount
    on this deal, no paperwork needed.` → alert card: contradiction §3.1,
    verbatim clause, POL-01, the SQL that found it, model + latencies.

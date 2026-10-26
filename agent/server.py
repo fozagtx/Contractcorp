@@ -1,22 +1,35 @@
-"""ContractCop cockpit server: FastAPI over the claim-check agent.
+"""ContractCop server: FastAPI over the claim-check agent.
 
 Run from the workspace root:
     .venv/bin/uvicorn agent.server:app --reload --port 8600
+
+The UI is the Nuxt app in web/: `cd web && pnpm install && pnpm dev` for
+development on http://localhost:3100, or `cd web && pnpm generate` and this
+server will serve the static build at http://localhost:8600/.
 """
 import os
 import time
 import uuid
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from agent import claim_check, memory, transcript, zetaris
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
-COCKPIT = os.path.join(AGENT_DIR, "cockpit", "index.html")
+WEB_DIST = os.path.join(os.path.dirname(AGENT_DIR), "web", ".output", "public")
 
 app = FastAPI(title="ContractCop")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3100", "http://127.0.0.1:3100"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ClaimIn(BaseModel):
@@ -74,6 +87,13 @@ def health():
     return checks
 
 
-@app.get("/")
-def cockpit():
-    return FileResponse(COCKPIT)
+if os.path.isdir(WEB_DIST):
+    app.mount("/", StaticFiles(directory=WEB_DIST, html=True))
+else:
+
+    @app.get("/")
+    def root():
+        return {
+            "app": "ContractCop",
+            "ui": "run pnpm dev in web/ or pnpm generate",
+        }

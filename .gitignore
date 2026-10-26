@@ -29,3 +29,10 @@ dist/
 
 # macOS
 .DS_Store
+
+# Nuxt app
+web/node_modules/
+web/.nuxt/
+web/.output/
+web/.data/
+web/dist/
