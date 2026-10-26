@@ -120,6 +120,16 @@ export function useContractCop() {
   const contradictions = computed(
     () => events.value.filter((e) => e.verdict === 'contradiction').length,
   )
+  const counts = computed<Record<Verdict, number>>(() => {
+    const c: Record<Verdict, number> = {
+      contradiction: 0,
+      consistent: 0,
+      unclear: 0,
+      unrelated: 0,
+    }
+    for (const e of events.value) c[e.verdict]++
+    return c
+  })
 
   async function checkClaim(text: string) {
     const claim = text.trim()
@@ -218,6 +228,7 @@ export function useContractCop() {
     railError,
     checked,
     contradictions,
+    counts,
     ensureSession,
     checkClaim,
     parseTranscript,

@@ -37,6 +37,9 @@ function autosize() {
 }
 
 defineExpose({
+  focus() {
+    ta.value?.focus()
+  },
   fill(text: string) {
     draft.value = text
     nextTick(() => {
