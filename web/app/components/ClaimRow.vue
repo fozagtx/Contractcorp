@@ -53,21 +53,21 @@ const footer = computed(() => {
 </script>
 
 <template>
-  <article class="row" :class="{ open }">
+  <article class="row">
     <button
       type="button"
       class="row-head"
       :aria-expanded="open"
       @click="open = !open"
     >
-      <span class="head-grid">
-        <VerdictChip :verdict="e.verdict" />
+      <span class="vdot" :class="e.verdict" aria-hidden="true"></span>
+      <span class="mid">
         <span class="claim">"{{ e.claim }}"</span>
-        <span class="secs mono">{{ seconds }}</span>
+        <span class="desc">{{ descriptor }}</span>
       </span>
-      <span class="desc">
-        {{ descriptor }}
-        <span class="chev" aria-hidden="true">{{ open ? '▴' : '▾' }}</span>
+      <span class="side">
+        <VerdictChip :verdict="e.verdict" />
+        <span class="secs mono">{{ seconds }}</span>
       </span>
     </button>
     <div v-if="open" class="row-body">
@@ -78,20 +78,20 @@ const footer = computed(() => {
         </figcaption>
       </blockquote>
       <p v-if="e.policy" class="policy">
-        <span class="mono">Policy {{ e.policy.policy_id }}:</span> {{ e.policy.rule }}
+        <span class="mono">Policy {{ e.policy.policy_id }}</span> {{ e.policy.rule }}
       </p>
       <div v-if="e.reason" class="why">
-        <span class="label mono">Why</span>
+        <span class="label">Why</span>
         <p>{{ e.reason }}</p>
       </div>
       <div v-if="memoryLines.length" class="memory">
-        <span class="label mono">H-Mem recalled</span>
+        <span class="label">H-Mem recalled</span>
         <p v-for="(m, i) in memoryLines" :key="i" class="mem mono">
-          <span v-if="m.when" class="when">{{ m.when }} · </span>{{ m.text }}
+          <span v-if="m.when">{{ m.when }} · </span>{{ m.text }}
         </p>
       </div>
       <div v-if="e.sql" class="sqlwrap">
-        <span class="label mono">SQL</span>
+        <span class="label">SQL</span>
         <pre class="mono">{{ e.sql }}</pre>
       </div>
       <p v-if="footer" class="foot mono">{{ footer }}</p>
@@ -100,76 +100,75 @@ const footer = computed(() => {
 </template>
 
 <style scoped>
-.row {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--bg);
-  padding: 16px 18px;
-  transition: background 0.15s;
-}
-.row:hover { background: var(--surface-2); }
 .row-head {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   width: 100%;
   text-align: left;
+  padding: 14px 20px;
   min-height: 40px;
+  transition: background 0.15s;
 }
-.head-grid {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: baseline;
-  gap: 12px;
+.row-head:hover { background: #fbfaf7; }
+.vdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex: none;
 }
-.claim { font-weight: 400; }
-.secs { color: var(--ink-2); text-align: right; }
+.vdot.contradiction { background: var(--red); }
+.vdot.consistent { background: var(--green); }
+.vdot.unclear { background: var(--amber); }
+.vdot.unrelated { background: var(--ink-3); }
+.mid { flex: 1; min-width: 0; }
+.claim { display: block; font-weight: 500; font-size: 15px; color: var(--ink); }
 .desc {
   display: block;
-  font-weight: 400;
+  font-size: 13px;
   color: var(--ink-2);
-  margin-top: 4px;
+  margin-top: 2px;
   word-break: break-word;
 }
-.chev { margin-left: 8px; }
+.side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.secs { color: var(--ink-3); font-size: 11.5px; }
 .row-body {
-  margin-top: 12px;
-  padding-top: 12px;
+  padding: 14px 20px 18px;
+  background: #fbfaf7;
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 .clausequote {
-  border-left: 2px solid var(--line);
+  border-left: 2px solid var(--accent);
   padding-left: 14px;
-  font-weight: 400;
 }
-.clausequote figcaption { color: var(--ink-2); margin-top: 6px; }
-.policy { font-weight: 400; }
+.clausequote p { font-size: 14.5px; }
+.clausequote figcaption { color: var(--ink-3); margin-top: 6px; font-size: 11.5px; }
+.policy { font-size: 14px; color: var(--ink-2); }
+.policy .mono { color: var(--ink); font-size: 12px; margin-right: 6px; }
 .label {
   display: block;
-  color: var(--ink-2);
   margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 11px;
 }
-.why p { font-weight: 400; }
-.mem { color: var(--ink-2); }
-.when { color: var(--ink-2); }
+.why p, .policy { font-weight: 400; }
+.mem { color: var(--ink-2); font-size: 12px; }
 pre {
-  background: var(--surface-2);
-  border-radius: var(--radius);
+  background: #f3f1ec;
+  border-radius: 8px;
   padding: 12px 14px;
   overflow-x: auto;
   white-space: pre;
   color: var(--ink);
+  font-size: 12px;
 }
-.foot { color: var(--ink-2); }
-@media (prefers-reduced-motion: no-preference) {
-  .row-body { animation: expand 160ms ease-out; }
-  @keyframes expand {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: none; }
-  }
-}
+.foot { color: var(--ink-3); font-size: 11.5px; }
 </style>

@@ -3,11 +3,9 @@ const cop = useContractCop()
 </script>
 
 <template>
-  <div>
-    <h1>The signed contract.</h1>
-    <p class="sub">
-      Every clause and its sales policy, straight from Zetaris.
-    </p>
+  <div class="wrap">
+    <h1>The <em>signed</em> contract.</h1>
+    <p class="sub">Five clauses, served live from Zetaris.</p>
     <p v-if="cop.railError.value" class="err">
       Clauses unavailable. Is Zetaris up?
       <button type="button" class="retry" @click="cop.loadClauses">Retry</button>
@@ -19,44 +17,61 @@ const cop = useContractCop()
           <h2>{{ c.section }}</h2>
         </header>
         <p class="ctext">{{ c.text }}</p>
-        <p v-if="c.policy_id" class="cpol">
-          <span class="mono">Policy {{ c.policy_id }}</span>
-          <span class="rule">{{ c.policy_rule }}</span>
-        </p>
+        <div v-if="c.policy_id" class="cpol">
+          <span class="label">Policy {{ c.policy_id }}</span>
+          <p class="rule">{{ c.policy_rule }}</p>
+        </div>
       </article>
     </section>
   </div>
 </template>
 
 <style scoped>
+.wrap { max-width: 760px; margin: 0 auto; }
 h1 {
-  font-size: 56px;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin-bottom: 16px;
-}
-.sub {
-  color: var(--ink-2);
+  font-family: var(--serif);
+  font-size: 64px;
   font-weight: 400;
-  margin-bottom: 36px;
-  max-width: 560px;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+  margin-bottom: 18px;
+}
+h1 em { font-style: italic; }
+.sub {
+  font-size: 18px;
+  line-height: 26px;
+  color: var(--ink-2);
+  margin-bottom: 40px;
 }
 .err { color: var(--red); font-size: 13px; }
 .retry { text-decoration: underline; margin-left: 6px; }
-.clauses { display: flex; flex-direction: column; }
+.clauses { display: flex; flex-direction: column; gap: 18px; }
 .clause {
-  padding: 22px 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px 24px;
+}
+.clause header { display: flex; align-items: center; gap: 12px; }
+.cid {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  padding: 4px 10px;
+  flex: none;
+}
+h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.ctext { margin-top: 14px; font-size: 16px; line-height: 26px; }
+.cpol {
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
 }
-.clause header { display: flex; align-items: baseline; gap: 12px; }
-.cid { color: var(--ink-2); flex: none; }
-h2 { font-size: 19px; font-weight: 400; letter-spacing: -0.01em; }
-.ctext { margin-top: 10px; font-weight: 400; }
-.cpol { margin-top: 14px; display: flex; gap: 8px; align-items: baseline; }
-.cpol .mono { color: var(--ink); flex: none; }
-.rule { color: var(--ink-2); font-weight: 400; }
+.cpol .label { display: block; margin-bottom: 4px; }
+.rule { color: var(--ink-2); font-size: 14px; }
 @media (max-width: 900px) {
-  h1 { font-size: 40px; }
+  h1 { font-size: 44px; }
 }
 </style>

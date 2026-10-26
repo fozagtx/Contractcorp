@@ -37,14 +37,14 @@ onMounted(refresh)
 </script>
 
 <template>
-  <div>
-    <h1>End-of-call report.</h1>
-    <p class="sub mono">session {{ cop.session.value || 'new' }}</p>
+  <div class="wrap">
+    <h1>End-of-call <em>report</em>.</h1>
+    <p><span class="session mono">session {{ cop.session.value || 'new' }}</span></p>
 
-    <div class="stats mono">
+    <div class="stats">
       <div v-for="s in stats" :key="s.label" class="stat">
         <span class="n">{{ s.value }}</span>
-        <span class="l">{{ s.label }}</span>
+        <span class="label">{{ s.label }}</span>
       </div>
     </div>
 
@@ -52,74 +52,103 @@ onMounted(refresh)
       <button type="button" class="ghost" :disabled="loading" @click="refresh">
         {{ loading ? 'Loading…' : 'Refresh' }}
       </button>
-      <button type="button" class="ghost" @click="newSession">New session</button>
+      <button type="button" class="go" @click="newSession">New session</button>
     </div>
 
     <p v-if="failed" class="err">Could not load the report. Is the server up?</p>
-    <table v-else-if="report?.timeline.length">
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Verdict</th>
-          <th>Claim</th>
-          <th>Clause</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(h, i) in report.timeline" :key="i">
-          <td class="mono">{{ clock(h.ts) }}</td>
-          <td><VerdictChip :verdict="h.verdict" /></td>
-          <td class="claim">"{{ h.claim }}"</td>
-          <td class="mono">{{ h.clause_id || '-' }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else-if="report?.timeline.length" class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Verdict</th>
+            <th>Claim</th>
+            <th>Clause</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(h, i) in report.timeline" :key="i">
+            <td class="mono">{{ clock(h.ts) }}</td>
+            <td><VerdictChip :verdict="h.verdict" /></td>
+            <td class="claim">"{{ h.claim }}"</td>
+            <td class="mono">{{ h.clause_id || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <p v-else-if="!loading" class="sub">No claims in this session yet.</p>
   </div>
 </template>
 
 <style scoped>
+.wrap { max-width: 900px; margin: 0 auto; }
 h1 {
-  font-size: 56px;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin-bottom: 12px;
+  font-family: var(--serif);
+  font-size: 64px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+  margin-bottom: 18px;
 }
-.sub { color: var(--ink-2); font-weight: 400; }
+h1 em { font-style: italic; }
+.session {
+  font-size: 12px;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  padding: 5px 11px;
+}
 .stats {
-  margin-top: 28px;
-  display: flex;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
 .stat {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 14px 18px 14px 0;
-  margin-right: 18px;
-  border-right: 1px solid var(--line);
-}
-.stat:last-child { border-right: 0; }
-.n { font-size: 22px; color: var(--ink); }
-.l { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; }
-.drow { margin-top: 16px; display: flex; gap: 10px; }
-.ghost {
-  height: 32px;
-  padding: 0 12px;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  font-size: 13px;
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.ghost:hover:not(:disabled) { background: var(--surface); }
+.n { font-family: var(--serif); font-size: 40px; line-height: 1; }
+.drow { margin-top: 18px; display: flex; gap: 10px; }
+.ghost {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  font-size: 14px;
+  font-weight: 500;
+}
+.ghost:hover:not(:disabled) { background: #efece6; }
 .ghost:disabled { opacity: 0.5; }
-.err { color: var(--red); font-size: 13px; margin-top: 16px; }
+.go {
+  min-height: 40px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: var(--pill);
+}
+.err { color: var(--red); font-size: 13px; margin-top: 18px; }
+.sub { color: var(--ink-2); margin-top: 24px; }
+.tablewrap {
+  margin-top: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
 table {
-  margin-top: 28px;
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 13.5px;
 }
 th {
   text-align: left;
@@ -127,20 +156,19 @@ th {
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-  padding: 6px 8px 6px 0;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  padding: 12px 16px 10px;
   border-bottom: 1px solid var(--line);
 }
 td {
-  padding: 8px 8px 8px 0;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
-td.claim { font-weight: 400; }
+tr:last-child td { border-bottom: 0; }
 @media (max-width: 900px) {
-  h1 { font-size: 40px; }
-  .stats { flex-wrap: wrap; }
-  .stat { border-right: 0; }
+  h1 { font-size: 44px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

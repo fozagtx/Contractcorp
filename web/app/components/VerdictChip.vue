@@ -20,16 +20,16 @@ const labels: Record<Verdict, string> = {
   display: inline-flex;
   align-items: center;
   min-height: 22px;
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 3px 10px;
+  border-radius: var(--pill);
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
-.contradiction { color: var(--red); border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); background: color-mix(in srgb, var(--red) 10%, transparent); }
-.consistent { color: var(--green); border: 1px solid color-mix(in srgb, var(--green) 40%, transparent); background: color-mix(in srgb, var(--green) 10%, transparent); }
-.unclear { color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent); background: color-mix(in srgb, var(--amber) 10%, transparent); }
-.unrelated { color: var(--ink-2); border: 1px solid color-mix(in srgb, var(--ink-2) 40%, transparent); background: color-mix(in srgb, var(--ink-2) 10%, transparent); }
+.contradiction { color: var(--red); background: #fdeceb; }
+.consistent { color: var(--green); background: #e8f5ec; }
+.unclear { color: var(--amber); background: #fbf1dc; }
+.unrelated { color: var(--ink-3); background: #f1efe9; }
 </style>

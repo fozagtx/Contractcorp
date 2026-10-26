@@ -81,14 +81,14 @@ async function run() {
 </script>
 
 <template>
-  <div>
-    <h1>Check a whole call.</h1>
-    <p class="sub">
-      Drop a transcript file or paste it. Rep lines are checked against the
-      contract one by one.
-    </p>
+  <div class="grid">
+    <section class="side">
+      <h1>Check a <em>whole</em> call.</h1>
+      <p class="sub">
+        Drop a transcript file or paste it. Rep lines are checked against the
+        contract one by one.
+      </p>
 
-    <div class="inputs">
       <label
         class="drop"
         :class="{ dragging }"
@@ -107,29 +107,14 @@ async function run() {
       </label>
       <textarea
         v-model="text"
+        class="paste"
         rows="8"
         placeholder="Paste the transcript here"
         aria-label="Paste the transcript here"
       ></textarea>
-    </div>
-    <p v-if="fileError" class="err">{{ fileError }}</p>
-    <p v-if="info" class="info mono">{{ info }}</p>
+      <p v-if="fileError" class="err">{{ fileError }}</p>
+      <p v-if="info" class="info mono">{{ info }}</p>
 
-    <template v-if="parsed">
-      <p class="info mono">
-        {{ parsed.length }} rep lines found · {{ chosen.length }} selected
-      </p>
-      <ul class="preview">
-        <li v-for="(l, i) in parsed" :key="i">
-          <label>
-            <input v-model="selected[i]" type="checkbox" />
-            <span>{{ l }}</span>
-          </label>
-        </li>
-      </ul>
-    </template>
-
-    <div class="drow">
       <button
         v-if="!parsed"
         type="button"
@@ -139,42 +124,54 @@ async function run() {
       >
         {{ parsing ? 'Parsing…' : 'Parse' }}
       </button>
-      <button
-        v-else
-        type="button"
-        class="go"
-        :disabled="!chosen.length || running"
-        @click="run"
-      >
-        Check {{ chosen.length }} lines
-      </button>
-    </div>
 
-    <section class="feed" aria-live="polite">
-      <PendingRow v-if="cop.pending.value" :pending="cop.pending.value" />
-      <ClaimRow v-for="(e, i) in cop.events.value" :key="i" :e="e" />
+      <div v-if="parsed" class="lines">
+        <p class="info mono">
+          {{ parsed.length }} rep lines found · {{ chosen.length }} selected
+        </p>
+        <ul class="preview">
+          <li v-for="(l, i) in parsed" :key="i">
+            <label>
+              <input v-model="selected[i]" type="checkbox" />
+              <span>{{ l }}</span>
+            </label>
+          </li>
+        </ul>
+        <button
+          type="button"
+          class="go"
+          :disabled="!chosen.length || running"
+          @click="run"
+        >
+          Check {{ chosen.length }} lines
+        </button>
+      </div>
     </section>
+    <FeedCard />
   </div>
 </template>
 
 <style scoped>
-h1 {
-  font-size: 56px;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin-bottom: 16px;
-}
-.sub {
-  color: var(--ink-2);
-  font-weight: 400;
-  margin-bottom: 32px;
-  max-width: 560px;
-}
-.inputs {
+.grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+h1 {
+  font-family: var(--serif);
+  font-size: 64px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+  margin-bottom: 18px;
+}
+h1 em { font-style: italic; }
+.sub {
+  font-size: 18px;
+  line-height: 26px;
+  color: var(--ink-2);
+  margin-bottom: 30px;
 }
 .drop {
   display: flex;
@@ -182,43 +179,56 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 140px;
-  border: 1px dashed var(--line);
+  min-height: 120px;
+  border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
+  background: var(--card);
   cursor: pointer;
   color: var(--ink-2);
-  font-weight: 400;
   text-align: center;
   padding: 16px;
   transition: background 0.15s, border-color 0.15s;
 }
-.drop:hover, .drop.dragging { background: var(--surface); border-color: var(--ink-2); }
+.drop:hover, .drop.dragging { background: #fbfaf7; border-color: var(--ink-3); }
 .drop .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.dim { color: var(--ink-2); }
-textarea {
+.dim { color: var(--ink-3); font-size: 12px; }
+.paste {
+  margin-top: 14px;
   width: 100%;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fff;
-  padding: 10px 12px;
-  font-weight: 400;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  font-size: 14px;
   resize: vertical;
 }
-textarea:focus { outline: none; border-color: var(--ink); }
+.paste:focus { outline: none; border-color: var(--line-strong); }
 .err { color: var(--red); font-size: 13px; margin-top: 10px; }
-.info { color: var(--ink-2); margin-top: 12px; }
+.info { color: var(--ink-3); margin-top: 12px; font-size: 12px; }
+.go {
+  margin-top: 16px;
+  min-height: 40px;
+  padding: 0 20px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: var(--pill);
+}
+.go:disabled { opacity: 0.45; }
+.lines { margin-top: 4px; }
 .preview {
   margin-top: 10px;
   list-style: none;
   padding: 0;
-  color: var(--ink-2);
-  font-weight: 400;
   font-size: 13.5px;
-  max-height: 220px;
+  max-height: 260px;
   overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--card);
+  box-shadow: var(--shadow);
 }
 .preview li { border-bottom: 1px solid var(--line); }
 .preview li:last-child { border-bottom: 0; }
@@ -226,36 +236,22 @@ textarea:focus { outline: none; border-color: var(--ink); }
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 11px 14px;
   cursor: pointer;
   min-height: 40px;
+  color: var(--ink-2);
 }
 .preview input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  margin-top: 3px;
-  accent-color: var(--ink);
+  margin-top: 2px;
+  accent-color: var(--accent);
   flex: none;
 }
-.drow { margin-top: 18px; display: flex; gap: 10px; align-items: center; }
-.go {
-  height: 36px;
-  padding: 0 14px;
-  background: var(--accent);
-  color: #1b1b16;
-  font-weight: 500;
-  font-size: 13.5px;
-  border-radius: var(--radius);
-}
-.go:disabled { opacity: 0.5; }
-.feed {
-  margin-top: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: 1fr; gap: 40px; }
 }
 @media (max-width: 900px) {
-  h1 { font-size: 40px; }
-  .inputs { grid-template-columns: 1fr; }
+  h1 { font-size: 44px; }
 }
 </style>
