@@ -4,251 +4,454 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ContractCop — grounded compliance guardian</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f4a428'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231a1204'%3EC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0c0e12; --panel: #13161d; --card: #171b24; --line: #232936;
-    --text: #d7dce6; --dim: #7a8496; --accent: #ffb454; --bad: #ff5c5c;
-    --ok: #3ecf8e; --warn: #ffd166; --code: #9aa7ff;
-    font-size: 15px;
+    --bg: #09090b; --surface: #101013; --raised: #15151a; --panel: #0d0d10;
+    --line: #232329; --line-strong: #33333d;
+    --text: #f4f4f5; --text-2: #a1a1aa; --text-3: #6b6b76;
+    --accent: #f4a428; --accent-dim: rgba(244,164,40,.14);
+    --red: #ff5d5d; --red-dim: rgba(255,93,93,.12);
+    --green: #46d19a; --green-dim: rgba(70,209,154,.12);
+    --amber: #f2c94c; --amber-dim: rgba(242,201,76,.12);
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --sans: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.35);
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; }
+  html { height: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-    height: 100vh; display: flex; flex-direction: column;
+    min-height: 100%; background: var(--bg); color: var(--text);
+    font-family: var(--sans); font-size: 15px; letter-spacing: -0.011em;
+    display: flex; flex-direction: column; height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
+  button { font: inherit; cursor: pointer; }
+  input { font: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  /* ---------- header ---------- */
   header {
-    display: flex; align-items: center; gap: 14px;
-    padding: 10px 18px; border-bottom: 1px solid var(--line);
-    background: var(--panel);
-  }
-  header h1 { font-size: 16px; margin: 0; letter-spacing: .4px; }
-  header h1 b { color: var(--accent); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
-  .dot.ok { background: var(--ok); }
-  .dot.bad { background: var(--bad); }
-  .status { display: flex; gap: 12px; margin-left: auto; font-size: 12px; color: var(--dim); }
-  .status span { display: flex; align-items: center; gap: 6px; }
-  main { flex: 1; display: flex; min-height: 0; }
-  .rail {
-    width: 320px; border-right: 1px solid var(--line); overflow-y: auto;
-    background: var(--panel); padding: 12px;
-  }
-  .rail h2 { font-size: 12px; text-transform: uppercase; color: var(--dim);
-             letter-spacing: 1px; margin: 4px 0 10px; }
-  .clause { border: 1px solid var(--line); border-radius: 8px; padding: 10px;
-            margin-bottom: 8px; cursor: pointer; background: var(--card); }
-  .clause:hover { border-color: #34405a; }
-  .clause .cid { color: var(--accent); font-weight: 600; font-size: 13px; }
-  .clause .sec { color: var(--dim); font-size: 11px; margin-left: 6px; }
-  .clause .txt { font-size: 12px; color: #b8c0cf; margin-top: 6px;
-                 display: -webkit-box; -webkit-line-clamp: 3;
-                 -webkit-box-orient: vertical; overflow: hidden; }
-  .clause .full { font-size: 12px; color: #b8c0cf; margin-top: 6px; }
-  .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .composer {
-    display: flex; gap: 10px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; height: 52px; flex: none;
     border-bottom: 1px solid var(--line); background: var(--panel);
   }
-  .composer input {
-    background: var(--card); border: 1px solid var(--line); color: var(--text);
-    border-radius: 8px; padding: 10px 12px; font-size: 14px;
+  .wordmark { display: flex; align-items: center; gap: 10px; }
+  .wordmark .mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: linear-gradient(160deg, var(--accent), #d07708);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 14px; color: #1a1204;
   }
-  #session { width: 120px; }
-  #claim { flex: 1; }
-  .composer button, .reportbar button {
-    background: var(--accent); color: #14100a; font-weight: 600; border: 0;
-    border-radius: 8px; padding: 10px 18px; cursor: pointer; font-size: 14px;
+  .wordmark .name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+  .wordmark .tag { color: var(--text-3); font-size: 13px; margin-left: 2px; }
+  .status { margin-left: auto; display: flex; gap: 14px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--text-2);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+    background: var(--surface);
   }
-  .composer button:disabled { opacity: .5; cursor: wait; }
-  .feed { flex: 1; overflow-y: auto; padding: 16px 18px; }
-  .event { border: 1px solid var(--line); border-left: 3px solid var(--line);
-           border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;
-           background: var(--card); }
-  .event.contradiction { border-left-color: var(--bad); }
-  .event.consistent { border-left-color: var(--ok); }
-  .event.unclear { border-left-color: var(--warn); }
-  .event.unrelated { opacity: .66; }
-  .claimline { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .said { font-size: 14px; }
-  .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-           text-transform: uppercase; letter-spacing: .5px; }
-  .badge.contradiction { background: #3a1418; color: var(--bad); }
-  .badge.consistent { background: #10331f; color: var(--ok); }
-  .badge.unclear { background: #3a3014; color: var(--warn); }
-  .badge.unrelated { background: #262b36; color: var(--dim); }
-  .badge .n { color: var(--dim); font-weight: 400; margin-left: 6px; }
-  .evidence { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px;
-              display: grid; gap: 8px; }
-  .evidence .label { color: var(--dim); font-size: 11px; text-transform: uppercase;
-                     letter-spacing: .8px; margin-bottom: 3px; }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
+  .pill.ok .dot { background: var(--green); box-shadow: 0 0 6px rgba(70,209,154,.6); }
+  .pill.bad .dot { background: var(--red); }
+
+  /* ---------- frame ---------- */
+  main { flex: 1; display: flex; min-height: 0; }
+  .rail {
+    width: 330px; flex: none; border-right: 1px solid var(--line);
+    background: var(--panel); overflow-y: auto; padding: 18px 16px;
+  }
+  .rail-title {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--text-3); margin-bottom: 4px;
+  }
+  .rail-sub { font-size: 12px; color: var(--text-3); margin-bottom: 14px; }
+  .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* ---------- clause rail ---------- */
+  .clause {
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: var(--r-md); padding: 12px 13px; margin-bottom: 9px;
+    text-align: left; width: 100%; transition: border-color .15s, transform .15s;
+  }
+  .clause:hover { border-color: var(--line-strong); }
+  .clause .top { display: flex; align-items: baseline; gap: 8px; }
+  .clause .cid { color: var(--accent); font-weight: 600; font-size: 13px;
+                 font-family: var(--mono); letter-spacing: -0.02em; }
+  .clause .sec { color: var(--text-3); font-size: 12px; }
+  .clause .txt { color: var(--text-2); font-size: 13px; line-height: 1.55; margin-top: 7px;
+                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .clause.open .txt { display: block; }
+  .clause .policy-line { display: none; margin-top: 9px; padding-top: 9px;
+    border-top: 1px dashed var(--line); font-size: 12px; color: var(--text-3); line-height: 1.5; }
+  .clause.open .policy-line { display: block; }
+  .rail-skeleton .clause { height: 74px; border-radius: var(--r-md);
+    background: linear-gradient(100deg, var(--surface) 40%, var(--raised) 50%, var(--surface) 60%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* ---------- composer ---------- */
+  .composer {
+    display: flex; gap: 10px; padding: 14px 18px; flex: none;
+    border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11px; font-weight: 500; color: var(--text-3);
+                 text-transform: uppercase; letter-spacing: 0.08em; }
+  .field input {
+    background: var(--surface); border: 1px solid var(--line); color: var(--text);
+    border-radius: var(--r-sm); padding: 9px 12px; font-size: 14px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input::placeholder { color: var(--text-3); }
+  .field input:focus { outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim); }
+  #field-claim { flex: 1; }
+  #claim { width: 100%; }
+  #field-session { width: 130px; }
+  .btn {
+    background: var(--accent); color: #1a1204; border: 0; border-radius: var(--r-sm);
+    padding: 0 18px; font-weight: 600; font-size: 14px; letter-spacing: -0.01em;
+    align-self: flex-end; height: 37px;
+    transition: filter .15s, transform .05s;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .55; cursor: progress; }
+
+  /* ---------- feed ---------- */
+  .feed { flex: 1; overflow-y: auto; padding: 18px; display: flex;
+          flex-direction: column; gap: 12px; }
+  .empty {
+    margin: auto; text-align: center; color: var(--text-3); max-width: 420px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .empty .glyph { font-family: var(--mono); color: var(--accent); font-size: 22px; }
+  .empty h2 { font-size: 16px; font-weight: 600; color: var(--text-2); letter-spacing: -0.01em; }
+  .empty p { font-size: 13px; line-height: 1.6; }
+  .empty .try { color: var(--text-2); }
+  .empty .try code {
+    font-family: var(--mono); font-size: 12px; background: var(--surface);
+    border: 1px solid var(--line); padding: 2px 7px; border-radius: 5px;
+  }
+
+  /* ---------- event cards ---------- */
+  .event {
+    border: 1px solid var(--line); border-radius: var(--r-lg);
+    background: var(--surface); overflow: hidden;
+    animation: rise .28s cubic-bezier(.2,.8,.3,1) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+  .event .head {
+    display: flex; align-items: center; gap: 11px; padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .event .head .said { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; }
+  .badge {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 3px 9px; border-radius: 999px; flex: none;
+  }
+  .badge.contradiction { background: var(--red-dim); color: var(--red); }
+  .badge.consistent { background: var(--green-dim); color: var(--green); }
+  .badge.unclear { background: var(--amber-dim); color: var(--amber); }
+  .badge.unrelated { background: var(--raised); color: var(--text-3); }
+  .event.contradiction .head { box-shadow: inset 3px 0 0 var(--red); }
+  .event.consistent .head { box-shadow: inset 3px 0 0 var(--green); }
+  .event.unclear .head { box-shadow: inset 3px 0 0 var(--amber); }
+  .event.unrelated .head { box-shadow: inset 3px 0 0 var(--line-strong); }
+  .event .body { padding: 13px 16px 15px; display: grid; gap: 12px; }
+
+  .evidence-block .label {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--text-3); margin-bottom: 6px;
+  }
   .clausequote {
-    border-left: 2px solid var(--accent); background: #10131a;
-    padding: 8px 10px; border-radius: 0 8px 8px 0; font-size: 13px; color: #e8d9c4;
+    border-left: 2px solid var(--accent); background: var(--panel);
+    border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 10px 13px;
+    font-size: 13.5px; line-height: 1.6; color: #ead9bf;
   }
-  .clausequote .cid { color: var(--accent); font-weight: 700; margin-right: 6px; }
-  .policy { font-size: 12px; color: var(--dim); }
-  .sql { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px;
-         color: var(--code); background: #0a0c10; padding: 8px 10px;
-         border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
-  .meta { font-size: 11px; color: var(--dim); font-family: ui-monospace, Menlo, monospace; }
-  .memoryfact { font-size: 12px; color: #c9b98a; }
-  .empty { color: var(--dim); font-size: 13px; text-align: center;
-           margin-top: 60px; line-height: 2; }
-  .reportbar { display: flex; align-items: center; gap: 12px; padding: 10px 18px;
-               border-top: 1px solid var(--line); background: var(--panel);
-               font-size: 12px; color: var(--dim); }
-  .reportbar b { color: var(--text); }
-  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line);
-           border-radius: 12px; max-width: 640px; width: 92%; padding: 20px; }
-  dialog::backdrop { background: rgba(0,0,0,.6); }
-  dialog h3 { margin-top: 0; }
-  dialog .rline { border-bottom: 1px dashed var(--line); padding: 8px 0; font-size: 13px; }
+  .clausequote .cid { font-family: var(--mono); color: var(--accent);
+    font-weight: 500; margin-right: 8px; font-size: 12.5px; }
+  .policy-line, .reason-line { font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
+  .policy-line b, .reason-line b { color: var(--text); font-weight: 500; }
+  .reason-line { padding-left: 2px; }
+
+  .memoryfact {
+    font-size: 12.5px; line-height: 1.6; color: #d8c793;
+    display: flex; gap: 8px; align-items: baseline;
+  }
+  .memoryfact .when { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: none; }
+
+  .sqlblock {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: #9fa8d8;
+    background: #08080b; border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 10px 12px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .metaline {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    font-family: var(--mono); font-size: 11px; color: var(--text-2);
+    background: var(--raised); border: 1px solid var(--line);
+    border-radius: 5px; padding: 3px 8px;
+  }
+  .chip.hot { color: var(--accent); border-color: rgba(244,164,40,.35); }
+  .errorline { font-size: 12.5px; color: #ff9d9d; line-height: 1.5; }
+  .errorline small { color: var(--text-3); display: block; margin-top: 2px; }
+
+  /* pending card while a check is running */
+  .pending {
+    border: 1px dashed var(--line-strong); border-radius: var(--r-lg);
+    padding: 16px; color: var(--text-3); font-size: 13px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .pending .spin {
+    width: 14px; height: 14px; border-radius: 50%; flex: none;
+    border: 2px solid var(--line-strong); border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(1turn); } }
+
+  /* ---------- report bar ---------- */
+  .reportbar {
+    display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+    border-top: 1px solid var(--line); background: var(--panel); flex: none;
+    font-size: 12.5px; color: var(--text-3);
+  }
+  .btn-ghost {
+    background: transparent; color: var(--text-2); border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm); padding: 7px 14px; font-size: 13px; font-weight: 500;
+    transition: border-color .15s, color .15s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+  #rline .num { color: var(--text); font-weight: 600; font-family: var(--mono); font-size: 12px; }
+  #rline .bad-num { color: var(--red); }
+
+  /* ---------- dialog ---------- */
+  dialog {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line-strong); border-radius: var(--r-lg);
+    box-shadow: var(--shadow); max-width: 660px; width: 92%; padding: 22px;
+  }
+  dialog::backdrop { background: rgba(0,0,0,.65); backdrop-filter: blur(2px); }
+  dialog h3 { font-size: 16px; letter-spacing: -0.02em; margin-bottom: 4px; }
+  dialog .sub { color: var(--text-3); font-size: 13px; margin-bottom: 14px; }
+  .rline-item {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 10px 2px; border-top: 1px solid var(--line); font-size: 13px;
+  }
+  .rline-item .t { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: none; }
+  .rline-item .v { flex: none; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .rline-item .v.contradiction { color: var(--red); }
+  .rline-item .v.consistent { color: var(--green); }
+  .rline-item .v.unclear { color: var(--amber); }
+  .rline-item .v.unrelated { color: var(--text-3); }
+
+  @media (max-width: 900px) {
+    .rail { display: none; }
+    .status .pill.hide-sm { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <h1>Contract<b>Cop</b> — grounded compliance guardian</h1>
+  <div class="wordmark">
+    <div class="mark" aria-hidden="true">C</div>
+    <span class="name">ContractCop</span>
+    <span class="tag">grounded compliance guardian</span>
+  </div>
   <div class="status">
-    <span><i class="dot" id="dot-zetaris"></i>Zetaris</span>
-    <span>Nightshift route: live below</span>
+    <span class="pill" id="pill-zetaris"><span class="dot"></span>Zetaris</span>
+    <span class="pill hide-sm" id="pill-route"><span class="dot"></span>Nemotron · via Nightshift</span>
   </div>
 </header>
 <main>
-  <aside class="rail">
-    <h2>Contract · in Zetaris</h2>
-    <div id="railclauses"><div class="empty" style="margin-top:20px">loading clauses…</div></div>
+  <aside class="rail" aria-label="Contract clauses">
+    <div class="rail-title">Signed contract</div>
+    <div class="rail-sub">Served live from Zetaris · two sources, one join</div>
+    <div id="railclauses"></div>
   </aside>
   <section class="stage">
-    <div class="composer">
-      <input id="session" placeholder="session" title="session id — same id = shared memory">
-      <input id="claim" placeholder="type what the rep just said… (Enter to check)" autofocus>
-      <button id="send" onclick="send()">Check</button>
-    </div>
-    <div class="feed" id="feed">
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="field" id="field-session">
+        <label for="session">Session</label>
+        <input id="session" placeholder="today" title="same session id = shared memory">
+      </div>
+      <div class="field" id="field-claim">
+        <label for="claim">What the rep just said</label>
+        <input id="claim" placeholder="Type the line, press Enter — ContractCop checks it against the contract" autofocus>
+      </div>
+      <button class="btn" id="send" type="submit">Check</button>
+    </form>
+    <div class="feed" id="feed" aria-live="polite">
       <div class="empty" id="empty">
-        Every claim is checked against the signed contract in Zetaris,<br>
-        judged by Nemotron through Meterless Nightshift, with H-Mem memory.<br>
-        Type a rep line to start the call.
+        <div class="glyph">§</div>
+        <h2>No claims checked yet</h2>
+        <p>Every line the rep says gets routed by Nemotron, grounded in the
+           contract clauses stored in Zetaris, and judged with an evidence chain.</p>
+        <p class="try">Try: <code>We'll give you the 10% automatic discount, no approval needed.</code></p>
       </div>
     </div>
     <div class="reportbar">
-      <button onclick="report()">End-of-call report</button>
+      <button class="btn-ghost" id="reportbtn" type="button">End-of-call report</button>
       <span id="rline">no claims yet</span>
     </div>
   </section>
 </main>
-<dialog id="dlg"><h3>End-of-call report</h3><div id="dlgbody"></div>
-  <p><button onclick="document.getElementById('dlg').close()">Close</button></p></dialog>
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <h3 id="dlg-title">End-of-call report</h3>
+  <div class="sub" id="dlg-sub"></div>
+  <div id="dlgbody"></div>
+  <p style="margin-top:16px"><button class="btn-ghost" type="button" onclick="document.getElementById('dlg').close()">Close</button></p>
+</dialog>
 
 <script>
+const $ = id => document.getElementById(id);
 let count = { contradiction: 0, consistent: 0, unclear: 0, unrelated: 0 };
 
+function esc(s) {
+  return (s ?? '').replace(/[&<>"]/g,
+    c => ({'&':'\u0026amp;','<':'\u0026lt;','>':'\u0026gt;','"':'\u0026quot;'}[c]));
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+
+/* ---------- health + rail ---------- */
 async function health() {
+  const pill = $('pill-zetaris');
   try {
-    const r = await fetch('/api/health'); const d = await r.json();
-    const dot = document.getElementById('dot-zetaris');
-    dot.className = 'dot ' + (d.zetaris === 'ok' ? 'ok' : 'bad');
-  } catch (e) {
-    document.getElementById('dot-zetaris').className = 'dot bad';
-  }
+    const d = await (await fetch('/api/health')).json();
+    pill.classList.toggle('ok', d.zetaris === 'ok');
+    pill.classList.toggle('bad', d.zetaris !== 'ok');
+  } catch { pill.classList.add('bad'); }
 }
 
 async function loadRail() {
-  const r = await fetch('/api/clauses');
-  const d = await r.json();
-  const host = document.getElementById('railclauses');
-  if (!d.clauses) { host.innerHTML = '<div class="empty">clauses unavailable — is Zetaris up?</div>'; return; }
-  host.innerHTML = '';
-  d.clauses.forEach(c => {
-    const el = document.createElement('div');
-    el.className = 'clause';
-    el.innerHTML = `<span class="cid">§${c.clause_id}</span><span class="sec">${c.section}</span>
-      <div class="txt">${c.text}</div>`;
-    el.onclick = () => {
-      el.innerHTML = `<span class="cid">§${c.clause_id}</span><span class="sec">${c.section}</span>
-        <div class="full">${c.text}</div>
-        <div class="policy">policy ${c.policy_id}: ${c.policy_rule}</div>`;
-    };
-    host.appendChild(el);
-  });
+  const host = $('railclauses');
+  host.innerHTML = '<div class="rail-skeleton">' +
+    '<div class="clause"></div>'.repeat(5) + '</div>';
+  try {
+    const d = await (await fetch('/api/clauses')).json();
+    if (!d.clauses) throw new Error(d.error || 'unavailable');
+    host.innerHTML = '';
+    for (const c of d.clauses) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'clause';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML =
+        `<div class="top"><span class="cid">§${c.clause_id}</span><span class="sec">${esc(c.section)}</span></div>` +
+        `<div class="txt">${esc(c.text)}</div>` +
+        `<div class="policy-line">Sales policy <span style="font-family:var(--mono)">${esc(c.policy_id)}</span> — ${esc(c.policy_rule)}</div>`;
+      b.addEventListener('click', () => {
+        b.classList.toggle('open');
+        b.setAttribute('aria-expanded', b.classList.contains('open'));
+      });
+      host.appendChild(b);
+    }
+  } catch (e) {
+    host.innerHTML = `<div class="rail-sub" style="color:var(--red)">Couldn’t load clauses — is Zetaris running? ` +
+      `<button class="btn-ghost" type="button" style="margin-left:8px" onclick="loadRail()">Retry</button></div>`;
+  }
 }
 
-function esc(s) { return (s ?? '').replace(/[&<>"]/g, c => ({'&':'\u0026amp;','<':'\u0026lt;','>':'\u0026gt;','"':'\u0026quot;'}[c])); }
+/* ---------- event cards ---------- */
+function chip(label, hot) { return `<span class="chip${hot ? ' hot' : ''}">${esc(label)}</span>`; }
 
 function eventCard(e) {
-  const v = e.verdict;
-  const el = document.createElement('div');
-  el.className = 'event ' + v;
-  let evidence = '';
+  const el = document.createElement('article');
+  el.className = 'event';
+  let body = '';
   if (e.clause) {
-    evidence += `<div><div class="label">Evidence · from Zetaris</div>
-      <div class="clausequote"><span class="cid">§${e.clause.clause_id}</span>${esc(e.clause.text)}</div></div>`;
+    body += `<div class="evidence-block"><div class="label">Evidence · from Zetaris</div>
+      <blockquote class="clausequote"><span class="cid">§${esc(e.clause.clause_id)}</span>${esc(e.clause.text)}</blockquote></div>`;
   }
-  if (e.policy) evidence += `<div class="policy">sales policy ${esc(e.policy.policy_id)}: ${esc(e.policy.rule)}</div>`;
-  if (e.reason) evidence += `<div class="policy">verdict reason: ${esc(e.reason)}</div>`;
-  const mems = [...(e.memory?.same_session || []).map(m => `<div class="memoryfact">↩ earlier this call (${esc(m.when)}): “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</div>`),
-                ...(e.memory?.earlier_calls || []).map(m => `<div class="memoryfact">✦ earlier call (${esc(m.date)}): “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</div>`)].join('');
-  if (mems) evidence += `<div><div class="label">H-Mem memory</div>${mems}</div>`;
-  if (e.sql) evidence += `<div><div class="label">Query run against Zetaris</div><div class="sql">${esc(e.sql)}</div></div>`;
-  if (e.error) evidence += `<div class="policy" style="color:#ff9d9d">error (treated as unclear, not an accusation): ${esc(e.error)}</div>`;
-  const hops = (e.hops || []).map(h => `${h.hop}${h.ms != null ? ' ' + h.ms + 'ms' : ''}`).join(' · ');
-  evidence += `<div class="meta">${esc(e.model)} via Meterless Nightshift · ${hops} · total ${e.ms}ms${e.sql_ms != null ? ' · sql ' + e.sql_ms + 'ms' : ''}</div>`;
-  el.innerHTML = `<div class="claimline"><span class="badge ${v}">${v}</span>
-    <span class="said">“${esc(e.claim)}”</span></div>
-    <div class="evidence">${evidence}</div>`;
+  if (e.policy) body += `<div class="policy-line">Sales policy <b>${esc(e.policy.policy_id)}</b>: ${esc(e.policy.rule)}</div>`;
+  if (e.reason) body += `<div class="reason-line"><b>Why:</b> ${esc(e.reason)}</div>`;
+  const mems = [
+    ...(e.memory?.same_session || []).map(m =>
+      `<div class="memoryfact"><span class="when">${esc(m.when)}</span><span>earlier this call: “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</span></div>`),
+    ...(e.memory?.earlier_calls || []).map(m =>
+      `<div class="memoryfact"><span class="when">${esc(m.date)}</span><span>earlier call: “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</span></div>`),
+  ].join('');
+  if (mems) body += `<div class="evidence-block"><div class="label">H-Mem · remembered claims</div>${mems}</div>`;
+  if (e.sql) body += `<div class="evidence-block"><div class="label">Query against Zetaris</div><div class="sqlblock">${esc(e.sql)}</div></div>`;
+  if (e.error) body += `<div class="errorline">Error — treated as unclear, not an accusation.<small>${esc(e.error)}</small></div>`;
+  const hops = (e.hops || []).map(h => chip(`${h.hop}${h.ms != null ? ' ' + h.ms + 'ms' : ''}`, h.hop === 'verdict')).join('');
+  if (hops || e.model) body += `<div class="metaline">${chip(e.model)}${hops}${chip('total ' + e.ms + 'ms', true)}</div>`;
+  el.innerHTML =
+    `<div class="head"><span class="badge ${e.verdict}">${e.verdict}</span>` +
+    `<span class="said">“${esc(e.claim)}”</span></div>` +
+    (body ? `<div class="body">${body}</div>` : '');
   return el;
 }
 
-async function send() {
-  const input = document.getElementById('claim');
+/* ---------- send ---------- */
+$('composer').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const input = $('claim');
   const text = input.value.trim();
-  if (!text) return;
-  const session = document.getElementById('session').value.trim() || today();
-  document.getElementById('session').value = session;
+  if (!text || $('send').disabled) return;
+  const session = $('session').value.trim() || today();
+  $('session').value = session;
   input.value = '';
-  const btn = document.getElementById('send');
-  btn.disabled = true;
+  $('empty')?.remove();
+  const pending = document.createElement('div');
+  pending.className = 'pending';
+  pending.innerHTML = `<span class="spin" aria-hidden="true"></span>
+    <span>Routing with Nemotron → fetching clauses from Zetaris → judging the claim…</span>`;
+  $('feed').appendChild(pending);
+  $('send').disabled = true;
   try {
-    const r = await fetch('/api/claim', { method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session, text }) });
-    const e = await r.json();
-    document.getElementById('empty')?.remove();
-    document.getElementById('feed').appendChild(eventCard(e));
+    const e = await (await fetch('/api/claim', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session, text }),
+    })).json();
+    pending.remove();
+    $('feed').appendChild(eventCard(e));
     count[e.verdict] = (count[e.verdict] || 0) + 1;
     updateRline();
   } catch (err) {
-    alert('request failed: ' + err);
+    pending.remove();
+    const fail = document.createElement('div');
+    fail.className = 'errorline';
+    fail.innerHTML = `Request failed: ${esc(String(err))}<small>Is the server still running? Retry the line.</small>`;
+    $('feed').appendChild(fail);
   } finally {
-    btn.disabled = false;
+    $('send').disabled = false;
     input.focus();
   }
-}
+});
 
-function today() { return new Date().toISOString().slice(0, 10).replace(/-/g, ''); }
 function updateRline() {
-  document.getElementById('rline').innerHTML =
-    `claims checked: <b>${Object.values(count).reduce((a, b) => a + b, 0)}</b> · ` +
-    `<span style="color:var(--bad)">contradictions: <b>${count.contradiction || 0}</b></span> · ` +
-    `consistent: <b>${count.consistent || 0}</b> · unclear: <b>${count.unclear || 0}</b>`;
+  const total = Object.values(count).reduce((a, b) => a + b, 0);
+  $('rline').innerHTML = total === 0 ? 'no claims yet' :
+    `<span class="num">${total}</span> claims · <span class="num bad-num">${count.contradiction}</span> contradictions · ` +
+    `<span class="num">${count.consistent}</span> consistent · <span class="num">${count.unclear}</span> unclear`;
 }
 
-async function report() {
-  const session = document.getElementById('session').value.trim() || today();
-  const r = await fetch('/api/report?session=' + encodeURIComponent(session));
-  const d = await r.json();
-  const body = document.getElementById('dlgbody');
-  body.innerHTML = `<p>session <b>${esc(d.session)}</b> — ${d.claims_total} claims, ` +
-    `<span style="color:var(--bad)">${d.contradictions} contradictions</span></p>` +
-    (d.timeline.length ? d.timeline.map(h =>
-      `<div class="rline"><span class="meta">${new Date(h.ts * 1000).toLocaleTimeString()}</span>
-       “${esc(h.claim)}” → <b>${h.verdict}</b>${h.clause_id ? ' §' + esc(h.clause_id) : ''}</div>`).join('')
-     : '<p class="empty">no claims in this session yet</p>');
-  document.getElementById('dlg').showModal();
-}
+/* ---------- report ---------- */
+$('reportbtn').addEventListener('click', async () => {
+  const session = $('session').value.trim() || today();
+  $('dlg-sub').textContent = 'loading…';
+  $('dlg').showModal();
+  const d = await (await fetch('/api/report?session=' + encodeURIComponent(session))).json();
+  $('dlg-sub').textContent = `session ${d.session} — ${d.claims_total} claims, ${d.contradictions} contradictions`;
+  $('dlgbody').innerHTML = d.timeline.length
+    ? d.timeline.map(h =>
+        `<div class="rline-item"><span class="t">${new Date(h.ts * 1000).toLocaleTimeString()}</span>` +
+        `<span class="v ${h.verdict}">${h.verdict}</span>` +
+        `<span>“${esc(h.claim)}”${h.clause_id ? ' — §' + esc(h.clause_id) : ''}</span></div>`).join('')
+    : '<p class="rail-sub">No claims in this session yet.</p>';
+});
 
-document.getElementById('claim').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 health(); loadRail(); updateRline();
 </script>
 </body>
