@@ -50,7 +50,7 @@ def test_unrelated_claims_do_not_match(monkeypatch, tmp_path):
 
 
 def test_score_normalizes_punctuation_and_case():
-    a = memory._normalize("We'll give you 10% — automatically!!")
+    a = memory._normalize("We'll give you 10%... automatically!!")
     b = memory._normalize("well give you 10 automatically")
     assert memory._score(a, b) > 0.4
 

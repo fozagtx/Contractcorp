@@ -22,7 +22,7 @@ rep line (typed in the cockpit)
    ├─ Zetaris (one cross-source JOIN query):
    │     contract clauses  ⋈  sales policy rules        ← two REST sources, one query
    │
-   ├─ verdict (Nemotron): STRICT JSON — contradiction | consistent | unclear, clause_id, reason
+   ├─ verdict (Nemotron): STRICT JSON: contradiction | consistent | unclear, clause_id, reason
    │     + H-Mem memories of earlier claims (this call and earlier calls)
    │
    └─ alert card: verbatim clause text (from Zetaris) + policy + reason
@@ -30,24 +30,24 @@ rep line (typed in the cockpit)
 ```
 
 Nothing the model writes ever reaches the alert text. The clause words are
-fetched from Zetaris by clause_id. On any error — provider, parse, network —
+fetched from Zetaris by clause_id. On any error (provider, parse, network),
 the verdict is `unclear`, never an accusation.
 
 ## The three layers (hackathon requirements)
 
 | Layer | Requirement | Where it lives |
 |---|---|---|
-| DATA | Zetaris must be used | `agent/zetaris.py` — every clause lookup is a live REST query; two sources (contract gist + policy gist) registered as Zetaris REST tables and JOINed in one statement (`clauseguard.contract_flat` ⋈ `clauseguard.policy_flat`) |
-| BUILD | 1+ Meterless Engine in working code | **H-Mem** — `agent/memory.py`: persistent SQLite claim memory with word-overlap recall; conformance tests in `agent/tests/test_memory.py` |
-| POWER | Nightshift primary provider, Nemotron via Nightshift | `agent/llm.py` — OpenAI-compatible client pointed at the Nightshift Runtime (`127.0.0.1:8088/v1`), model `nvidia/nemotron-3.5-lightning-30b-a3b`, headers `meterless-app` / `meterless-scope`; Nightshift receipts show which model served each request |
+| DATA | Zetaris must be used | `agent/zetaris.py`: every clause lookup is a live REST query; two sources (contract gist + policy gist) registered as Zetaris REST tables and JOINed in one statement (`clauseguard.contract_flat` ⋈ `clauseguard.policy_flat`) |
+| BUILD | 1+ Meterless Engine in working code | **H-Mem**, in `agent/memory.py`: persistent SQLite claim memory with word-overlap recall; conformance tests in `agent/tests/test_memory.py` |
+| POWER | Nightshift primary provider, Nemotron via Nightshift | `agent/llm.py`: OpenAI-compatible client pointed at the Nightshift Runtime (`127.0.0.1:8088/v1`), model `nvidia/nemotron-3.5-lightning-30b-a3b`, headers `meterless-app` / `meterless-scope`; Nightshift receipts show which model served each request |
 
 ## Why H-Mem is load-bearing, not decorative
 
 - **Within a call:** the rep repeats a contradicted commitment → the new
   alert carries the earlier claim with its timestamp and verdict
-  ("earlier this call at 18:35 you said X — contradiction §3.1").
+  ("earlier this call at 18:35 you said X, contradiction §3.1").
 - **Across calls:** a later session recalls the same contradicted
-  commitments from previous sessions — memory survives restarts
+  commitments from previous sessions; memory survives restarts
   (SQLite at `agent/memory.db`), which is exactly the persistence the
   engine exists for.
 - Proof: `pytest agent/tests/test_memory.py` (6 conformance tests,
@@ -66,8 +66,8 @@ the verdict is `unclear`, never an accusation.
   "unclear" labels: "we might be able to do something on the price" and
   "our uptime is really good, trust me" were judged contradictions citing
   §3.1 (verbal price commitments) and §9.1 (uptime commitments above
-  target). Defensible readings — both clauses literally prohibit verbal
-  commitments — reported as-is rather than tuned away.
+  target). Defensible readings: both clauses literally prohibit verbal
+  commitments, reported as-is rather than tuned away.
 - **Latency: median 2.7–2.9 s per claim** end to end (route hop + Zetaris
   JOIN + verdict hop), with Nemotron 3.5 run with thinking disabled and a
   retry on transient empty responses. With default reasoning the verdict
@@ -94,7 +94,8 @@ agent/
 ├── zetaris.py       # run_sql + the cross-source clause JOIN (DATA)
 ├── memory.py        # H-Mem engine: persistent claim memory (BUILD)
 ├── claim_check.py   # the bounded two-hop claim-check loop + safety rules
-├── server.py        # FastAPI: /api/claim, /api/clauses, /api/report, /api/health
+├── transcript.py     # parse pasted/uploaded call transcripts into rep lines
+├── server.py        # FastAPI: /api/claim, /api/transcript, /api/clauses, /api/report, /api/health
 ├── cockpit/         # single-file text-first cockpit (transcript, alerts, rail, report)
 ├── tests/           # unit + integration + the labeled-claims accuracy fixture
 └── data/            # contract + policy fixtures (also served via gist to Zetaris)
@@ -102,7 +103,7 @@ agent/
 
 ## Demo script (2 minutes)
 
-1. Open the cockpit — the rail loads the five clauses straight from Zetaris.
+1. Open the cockpit; the rail loads the five clauses straight from Zetaris.
 2. Type: `And of course we will give you the 10 percent automatic discount
    on this deal, no paperwork needed.` → alert card: contradiction §3.1,
    verbatim clause, POL-01, the SQL that found it, model + latencies.
@@ -113,7 +114,10 @@ agent/
    H-Mem memory ref to the earlier claim in the same call**.
 5. Change the session id and repeat → the alert cites the earlier **call**.
 6. End-of-call report → timeline of every claim and verdict.
-7. (Optional, for the award) open Nightshift and show the run receipts: the
+7. Click **Check a transcript** and paste or upload a full call transcript
+   (timestamps and speaker labels are parsed; rep-side lines are checked one
+   by one, with progress, and H-Mem carries claims across lines).
+8. (Optional, for the award) open Nightshift and show the run receipts: the
    checks were served by `nvidia/nemotron-3.5-lightning-30b-a3b`.
 
 ## Safety rules (kept from the claim-check discipline)

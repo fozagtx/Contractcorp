@@ -32,7 +32,7 @@ def test_topic_whitelist_blocks_injection():
 
 
 def test_check_claim_unreachable_backend_is_unclear_not_accusation(monkeypatch, tmp_path):
-    """If Zetaris/Nemotron are down, the verdict is unclear — never a false alert."""
+    """If Zetaris/Nemotron are down, the verdict is unclear, never a false alert."""
     import agent.memory as memory
     monkeypatch.setattr(memory, "DB_PATH", str(tmp_path / "m.db"))
 

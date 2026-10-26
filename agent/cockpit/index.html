@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ContractCop — grounded compliance guardian</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f4a428'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231a1204'%3EC%3C/text%3E%3C/svg%3E">
+<title>ContractCop, grounded compliance guardian</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231c1c1c'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%23ffffff'%3EC%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #09090b; --surface: #101013; --raised: #15151a; --panel: #0d0d10;
-    --line: #232329; --line-strong: #33333d;
-    --text: #f4f4f5; --text-2: #a1a1aa; --text-3: #6b6b76;
-    --accent: #f4a428; --accent-dim: rgba(244,164,40,.14);
-    --red: #ff5d5d; --red-dim: rgba(255,93,93,.12);
-    --green: #46d19a; --green-dim: rgba(70,209,154,.12);
-    --amber: #f2c94c; --amber-dim: rgba(242,201,76,.12);
+    --bg: #ffffff; --surface: #fafafa; --raised: #f4f4f5; --panel: #fbfbfc;
+    --line: #e5e5e5; --line-strong: #d4d4d8;
+    --text: #1c1c1c; --text-2: #52525b; --text-3: #8b8b93;
+    --accent: #b06f00; --accent-soft: #fdf3e0; --accent-line: #eec98a;
+    --red: #c92a2a; --red-soft: #fdeaea;
+    --green: #0a7d4f; --green-soft: #e8f5ee;
+    --amber: #9a6b00; --amber-soft: #fdf4d9;
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
     --sans: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
     --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
-    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.35);
+    --shadow: 0 1px 2px rgba(28,28,28,.06), 0 8px 24px rgba(28,28,28,.07);
   }
   * { box-sizing: border-box; margin: 0; }
   html { height: 100%; }
@@ -32,20 +32,19 @@
   }
   button { font: inherit; cursor: pointer; }
   input { font: inherit; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 4px; }
 
-  /* ---------- header ---------- */
+  /* header */
   header {
     display: flex; align-items: center; gap: 16px;
     padding: 0 20px; height: 52px; flex: none;
-    border-bottom: 1px solid var(--line); background: var(--panel);
+    border-bottom: 1px solid var(--line); background: var(--bg);
   }
   .wordmark { display: flex; align-items: center; gap: 10px; }
   .wordmark .mark {
-    width: 26px; height: 26px; border-radius: 7px;
-    background: linear-gradient(160deg, var(--accent), #d07708);
+    width: 26px; height: 26px; border-radius: 7px; background: var(--text);
     display: grid; place-items: center;
-    font-weight: 700; font-size: 14px; color: #1a1204;
+    font-weight: 700; font-size: 14px; color: #fff;
   }
   .wordmark .name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
   .wordmark .tag { color: var(--text-3); font-size: 13px; margin-left: 2px; }
@@ -54,13 +53,12 @@
     display: inline-flex; align-items: center; gap: 7px;
     font-size: 12px; color: var(--text-2);
     border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
-    background: var(--surface);
+    background: var(--bg);
   }
   .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
-  .pill.ok .dot { background: var(--green); box-shadow: 0 0 6px rgba(70,209,154,.6); }
+  .pill.ok .dot { background: var(--green); }
   .pill.bad .dot { background: var(--red); }
 
-  /* ---------- frame ---------- */
   main { flex: 1; display: flex; min-height: 0; }
   .rail {
     width: 330px; flex: none; border-right: 1px solid var(--line);
@@ -70,14 +68,14 @@
     font-size: 11px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.09em; color: var(--text-3); margin-bottom: 4px;
   }
-  .rail-sub { font-size: 12px; color: var(--text-3); margin-bottom: 14px; }
+  .rail-sub { font-size: 12px; color: var(--text-3); margin-bottom: 14px; line-height: 1.5; }
   .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
-  /* ---------- clause rail ---------- */
+  /* clause rail */
   .clause {
-    border: 1px solid var(--line); background: var(--surface);
+    border: 1px solid var(--line); background: var(--bg);
     border-radius: var(--r-md); padding: 12px 13px; margin-bottom: 9px;
-    text-align: left; width: 100%; transition: border-color .15s, transform .15s;
+    text-align: left; width: 100%; transition: border-color .15s;
   }
   .clause:hover { border-color: var(--line-strong); }
   .clause .top { display: flex; align-items: baseline; gap: 8px; }
@@ -95,36 +93,36 @@
     background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
-  /* ---------- composer ---------- */
+  /* composer */
   .composer {
     display: flex; gap: 10px; padding: 14px 18px; flex: none;
-    border-bottom: 1px solid var(--line); background: var(--panel);
+    border-bottom: 1px solid var(--line); background: var(--bg);
   }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field label { font-size: 11px; font-weight: 500; color: var(--text-3);
                  text-transform: uppercase; letter-spacing: 0.08em; }
   .field input {
-    background: var(--surface); border: 1px solid var(--line); color: var(--text);
+    background: var(--bg); border: 1px solid var(--line-strong); color: var(--text);
     border-radius: var(--r-sm); padding: 9px 12px; font-size: 14px;
     transition: border-color .15s, box-shadow .15s;
   }
   .field input::placeholder { color: var(--text-3); }
-  .field input:focus { outline: none; border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-dim); }
+  .field input:focus { outline: none; border-color: var(--text);
+    box-shadow: 0 0 0 3px var(--raised); }
   #field-claim { flex: 1; }
   #claim { width: 100%; }
   #field-session { width: 130px; }
   .btn {
-    background: var(--accent); color: #1a1204; border: 0; border-radius: var(--r-sm);
+    background: var(--text); color: #fff; border: 0; border-radius: var(--r-sm);
     padding: 0 18px; font-weight: 600; font-size: 14px; letter-spacing: -0.01em;
     align-self: flex-end; height: 37px;
-    transition: filter .15s, transform .05s;
+    transition: background .15s, transform .05s;
   }
-  .btn:hover { filter: brightness(1.08); }
+  .btn:hover { background: #303035; }
   .btn:active { transform: translateY(1px); }
-  .btn:disabled { opacity: .55; cursor: progress; }
+  .btn:disabled { opacity: .5; cursor: progress; }
 
-  /* ---------- feed ---------- */
+  /* feed */
   .feed { flex: 1; overflow-y: auto; padding: 18px; display: flex;
           flex-direction: column; gap: 12px; }
   .empty {
@@ -140,10 +138,10 @@
     border: 1px solid var(--line); padding: 2px 7px; border-radius: 5px;
   }
 
-  /* ---------- event cards ---------- */
+  /* event cards */
   .event {
     border: 1px solid var(--line); border-radius: var(--r-lg);
-    background: var(--surface); overflow: hidden;
+    background: var(--bg); overflow: hidden;
     animation: rise .28s cubic-bezier(.2,.8,.3,1) both;
   }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
@@ -156,13 +154,13 @@
     font-size: 11px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.06em; padding: 3px 9px; border-radius: 999px; flex: none;
   }
-  .badge.contradiction { background: var(--red-dim); color: var(--red); }
-  .badge.consistent { background: var(--green-dim); color: var(--green); }
-  .badge.unclear { background: var(--amber-dim); color: var(--amber); }
+  .badge.contradiction { background: var(--red-soft); color: var(--red); }
+  .badge.consistent { background: var(--green-soft); color: var(--green); }
+  .badge.unclear { background: var(--amber-soft); color: var(--amber); }
   .badge.unrelated { background: var(--raised); color: var(--text-3); }
   .event.contradiction .head { box-shadow: inset 3px 0 0 var(--red); }
   .event.consistent .head { box-shadow: inset 3px 0 0 var(--green); }
-  .event.unclear .head { box-shadow: inset 3px 0 0 var(--amber); }
+  .event.unclear .head { box-shadow: inset 3px 0 0 #d9a400; }
   .event.unrelated .head { box-shadow: inset 3px 0 0 var(--line-strong); }
   .event .body { padding: 13px 16px 15px; display: grid; gap: 12px; }
 
@@ -171,9 +169,9 @@
     letter-spacing: 0.09em; color: var(--text-3); margin-bottom: 6px;
   }
   .clausequote {
-    border-left: 2px solid var(--accent); background: var(--panel);
+    border-left: 2px solid var(--accent-line); background: var(--accent-soft);
     border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 10px 13px;
-    font-size: 13.5px; line-height: 1.6; color: #ead9bf;
+    font-size: 13.5px; line-height: 1.6; color: #4a3a17;
   }
   .clausequote .cid { font-family: var(--mono); color: var(--accent);
     font-weight: 500; margin-right: 8px; font-size: 12.5px; }
@@ -182,30 +180,27 @@
   .reason-line { padding-left: 2px; }
 
   .memoryfact {
-    font-size: 12.5px; line-height: 1.6; color: #d8c793;
+    font-size: 12.5px; line-height: 1.6; color: var(--text-2);
     display: flex; gap: 8px; align-items: baseline;
   }
   .memoryfact .when { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: none; }
 
   .sqlblock {
-    font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: #9fa8d8;
-    background: #08080b; border: 1px solid var(--line);
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: #c9d1e3;
+    background: #14161c; border: 1px solid #23262e;
     border-radius: var(--r-sm); padding: 10px 12px;
     white-space: pre-wrap; word-break: break-word;
   }
-  .metaline {
-    display: flex; flex-wrap: wrap; gap: 6px;
-  }
+  .metaline { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     font-family: var(--mono); font-size: 11px; color: var(--text-2);
-    background: var(--raised); border: 1px solid var(--line);
+    background: var(--surface); border: 1px solid var(--line);
     border-radius: 5px; padding: 3px 8px;
   }
-  .chip.hot { color: var(--accent); border-color: rgba(244,164,40,.35); }
-  .errorline { font-size: 12.5px; color: #ff9d9d; line-height: 1.5; }
+  .chip.hot { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+  .errorline { font-size: 12.5px; color: var(--red); line-height: 1.5; }
   .errorline small { color: var(--text-3); display: block; margin-top: 2px; }
 
-  /* pending card while a check is running */
   .pending {
     border: 1px dashed var(--line-strong); border-radius: var(--r-lg);
     padding: 16px; color: var(--text-3); font-size: 13px;
@@ -213,33 +208,32 @@
   }
   .pending .spin {
     width: 14px; height: 14px; border-radius: 50%; flex: none;
-    border: 2px solid var(--line-strong); border-top-color: var(--accent);
+    border: 2px solid var(--line-strong); border-top-color: var(--text);
     animation: spin .8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(1turn); } }
 
-  /* ---------- report bar ---------- */
+  /* report bar */
   .reportbar {
     display: flex; align-items: center; gap: 14px; padding: 10px 18px;
-    border-top: 1px solid var(--line); background: var(--panel); flex: none;
+    border-top: 1px solid var(--line); background: var(--bg); flex: none;
     font-size: 12.5px; color: var(--text-3);
   }
   .btn-ghost {
-    background: transparent; color: var(--text-2); border: 1px solid var(--line-strong);
+    background: transparent; color: var(--text); border: 1px solid var(--line-strong);
     border-radius: var(--r-sm); padding: 7px 14px; font-size: 13px; font-weight: 500;
-    transition: border-color .15s, color .15s;
+    transition: border-color .15s, background .15s;
   }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--text); background: var(--surface); }
   #rline .num { color: var(--text); font-weight: 600; font-family: var(--mono); font-size: 12px; }
   #rline .bad-num { color: var(--red); }
 
-  /* ---------- dialog ---------- */
   dialog {
-    background: var(--surface); color: var(--text);
+    background: var(--bg); color: var(--text);
     border: 1px solid var(--line-strong); border-radius: var(--r-lg);
     box-shadow: var(--shadow); max-width: 660px; width: 92%; padding: 22px;
   }
-  dialog::backdrop { background: rgba(0,0,0,.65); backdrop-filter: blur(2px); }
+  dialog::backdrop { background: rgba(28,28,28,.3); }
   dialog h3 { font-size: 16px; letter-spacing: -0.02em; margin-bottom: 4px; }
   dialog .sub { color: var(--text-3); font-size: 13px; margin-bottom: 14px; }
   .rline-item {
@@ -271,24 +265,24 @@
   </div>
   <div class="status">
     <span class="pill" id="pill-zetaris"><span class="dot"></span>Zetaris</span>
-    <span class="pill hide-sm" id="pill-route"><span class="dot"></span>Nemotron · via Nightshift</span>
+    <span class="pill hide-sm" id="pill-route"><span class="dot"></span>Nemotron via Nightshift</span>
   </div>
 </header>
 <main>
   <aside class="rail" aria-label="Contract clauses">
     <div class="rail-title">Signed contract</div>
-    <div class="rail-sub">Served live from Zetaris · two sources, one join</div>
+    <div class="rail-sub">Served live from Zetaris. Two sources, one join.</div>
     <div id="railclauses"></div>
   </aside>
   <section class="stage">
     <form class="composer" id="composer" autocomplete="off">
       <div class="field" id="field-session">
         <label for="session">Session</label>
-        <input id="session" placeholder="today" title="same session id = shared memory">
+        <input id="session" placeholder="today" title="same session id shares memory">
       </div>
       <div class="field" id="field-claim">
         <label for="claim">What the rep just said</label>
-        <input id="claim" placeholder="Type the line, press Enter — ContractCop checks it against the contract" autofocus>
+        <input id="claim" placeholder="Type the line, press Enter. ContractCop checks it against the contract." autofocus>
       </div>
       <button class="btn" id="send" type="submit">Check</button>
     </form>
@@ -302,11 +296,30 @@
       </div>
     </div>
     <div class="reportbar">
+      <button class="btn-ghost" id="transcriptbtn" type="button">Check a transcript</button>
       <button class="btn-ghost" id="reportbtn" type="button">End-of-call report</button>
       <span id="rline">no claims yet</span>
     </div>
   </section>
 </main>
+<dialog id="trdlg" aria-labelledby="trdlg-title">
+  <h3 id="trdlg-title">Check a call transcript</h3>
+  <div class="sub">Upload a file or paste the transcript. Timestamps and speaker
+    labels are parsed; rep-side lines get checked one by one.</div>
+  <div class="field" style="margin-bottom:12px">
+    <label for="trfile">Transcript file (.txt, .md, .vtt, .srt)</label>
+    <input id="trfile" type="file" accept=".txt,.md,.vtt,.srt,.csv,text/plain">
+  </div>
+  <div class="field" style="margin-bottom:14px">
+    <label for="trtext">Or paste it here</label>
+    <textarea id="trtext" rows="8" style="width:100%;font:inherit;font-size:13px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--bg);color:var(--text);resize:vertical"></textarea>
+  </div>
+  <p style="display:flex;gap:10px;align-items:center">
+    <button class="btn" id="trgo" type="button">Check transcript</button>
+    <button class="btn-ghost" type="button" onclick="document.getElementById('trdlg').close()">Cancel</button>
+    <span id="trinfo" style="font-size:12px;color:var(--text-3)"></span>
+  </p>
+</dialog>
 <dialog id="dlg" aria-labelledby="dlg-title">
   <h3 id="dlg-title">End-of-call report</h3>
   <div class="sub" id="dlg-sub"></div>
@@ -324,7 +337,6 @@ function esc(s) {
 }
 function today() { return new Date().toISOString().slice(0, 10); }
 
-/* ---------- health + rail ---------- */
 async function health() {
   const pill = $('pill-zetaris');
   try {
@@ -349,7 +361,7 @@ async function loadRail() {
       b.innerHTML =
         `<div class="top"><span class="cid">§${c.clause_id}</span><span class="sec">${esc(c.section)}</span></div>` +
         `<div class="txt">${esc(c.text)}</div>` +
-        `<div class="policy-line">Sales policy <span style="font-family:var(--mono)">${esc(c.policy_id)}</span> — ${esc(c.policy_rule)}</div>`;
+        `<div class="policy-line">Sales policy <span style="font-family:var(--mono)">${esc(c.policy_id)}</span>: ${esc(c.policy_rule)}</div>`;
       b.addEventListener('click', () => {
         b.classList.toggle('open');
         b.setAttribute('aria-expanded', b.classList.contains('open'));
@@ -357,12 +369,11 @@ async function loadRail() {
       host.appendChild(b);
     }
   } catch (e) {
-    host.innerHTML = `<div class="rail-sub" style="color:var(--red)">Couldn’t load clauses — is Zetaris running? ` +
+    host.innerHTML = `<div class="rail-sub" style="color:var(--red)">Couldn't load clauses. Is Zetaris running? ` +
       `<button class="btn-ghost" type="button" style="margin-left:8px" onclick="loadRail()">Retry</button></div>`;
   }
 }
 
-/* ---------- event cards ---------- */
 function chip(label, hot) { return `<span class="chip${hot ? ' hot' : ''}">${esc(label)}</span>`; }
 
 function eventCard(e) {
@@ -370,7 +381,7 @@ function eventCard(e) {
   el.className = 'event';
   let body = '';
   if (e.clause) {
-    body += `<div class="evidence-block"><div class="label">Evidence · from Zetaris</div>
+    body += `<div class="evidence-block"><div class="label">Evidence from Zetaris</div>
       <blockquote class="clausequote"><span class="cid">§${esc(e.clause.clause_id)}</span>${esc(e.clause.text)}</blockquote></div>`;
   }
   if (e.policy) body += `<div class="policy-line">Sales policy <b>${esc(e.policy.policy_id)}</b>: ${esc(e.policy.rule)}</div>`;
@@ -381,9 +392,9 @@ function eventCard(e) {
     ...(e.memory?.earlier_calls || []).map(m =>
       `<div class="memoryfact"><span class="when">${esc(m.date)}</span><span>earlier call: “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</span></div>`),
   ].join('');
-  if (mems) body += `<div class="evidence-block"><div class="label">H-Mem · remembered claims</div>${mems}</div>`;
+  if (mems) body += `<div class="evidence-block"><div class="label">H-Mem, remembered claims</div>${mems}</div>`;
   if (e.sql) body += `<div class="evidence-block"><div class="label">Query against Zetaris</div><div class="sqlblock">${esc(e.sql)}</div></div>`;
-  if (e.error) body += `<div class="errorline">Error — treated as unclear, not an accusation.<small>${esc(e.error)}</small></div>`;
+  if (e.error) body += `<div class="errorline">Error, treated as unclear and not an accusation.<small>${esc(e.error)}</small></div>`;
   const hops = (e.hops || []).map(h => chip(`${h.hop}${h.ms != null ? ' ' + h.ms + 'ms' : ''}`, h.hop === 'verdict')).join('');
   if (hops || e.model) body += `<div class="metaline">${chip(e.model)}${hops}${chip('total ' + e.ms + 'ms', true)}</div>`;
   el.innerHTML =
@@ -393,7 +404,6 @@ function eventCard(e) {
   return el;
 }
 
-/* ---------- send ---------- */
 $('composer').addEventListener('submit', async ev => {
   ev.preventDefault();
   const input = $('claim');
@@ -406,7 +416,7 @@ $('composer').addEventListener('submit', async ev => {
   const pending = document.createElement('div');
   pending.className = 'pending';
   pending.innerHTML = `<span class="spin" aria-hidden="true"></span>
-    <span>Routing with Nemotron → fetching clauses from Zetaris → judging the claim…</span>`;
+    <span>Routing with Nemotron, fetching clauses from Zetaris, judging the claim…</span>`;
   $('feed').appendChild(pending);
   $('send').disabled = true;
   try {
@@ -437,22 +447,76 @@ function updateRline() {
     `<span class="num">${count.consistent}</span> consistent · <span class="num">${count.unclear}</span> unclear`;
 }
 
-/* ---------- report ---------- */
 $('reportbtn').addEventListener('click', async () => {
   const session = $('session').value.trim() || today();
   $('dlg-sub').textContent = 'loading…';
   $('dlg').showModal();
   const d = await (await fetch('/api/report?session=' + encodeURIComponent(session))).json();
-  $('dlg-sub').textContent = `session ${d.session} — ${d.claims_total} claims, ${d.contradictions} contradictions`;
+  $('dlg-sub').textContent = `Session ${d.session}: ${d.claims_total} claims, ${d.contradictions} contradictions`;
   $('dlgbody').innerHTML = d.timeline.length
     ? d.timeline.map(h =>
         `<div class="rline-item"><span class="t">${new Date(h.ts * 1000).toLocaleTimeString()}</span>` +
         `<span class="v ${h.verdict}">${h.verdict}</span>` +
-        `<span>“${esc(h.claim)}”${h.clause_id ? ' — §' + esc(h.clause_id) : ''}</span></div>`).join('')
+        `<span>“${esc(h.claim)}”${h.clause_id ? ', §' + esc(h.clause_id) : ''}</span></div>`).join('')
     : '<p class="rail-sub">No claims in this session yet.</p>';
 });
 
 health(); loadRail(); updateRline();
+
+/* ---------- transcript upload / paste ---------- */
+$('transcriptbtn').addEventListener('click', () => {
+  $('trinfo').textContent = '';
+  $('trdlg').showModal();
+});
+
+$('trfile').addEventListener('change', async ev => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  if (f.size > 1024 * 1024) { $('trinfo').textContent = 'File too large (1 MB max).'; return; }
+  $('trtext').value = await f.text();
+  $('trinfo').textContent = `Loaded ${f.name} (${Math.ceil(f.size / 1024)} KB)`;
+});
+
+$('trgo').addEventListener('click', async () => {
+  const text = $('trtext').value.trim();
+  const session = $('session').value.trim() || today();
+  if (!text) { $('trinfo').textContent = 'Nothing to check yet. Pick a file or paste the transcript.'; return; }
+  $('session').value = session;
+  $('trgo').disabled = true;
+  $('trinfo').textContent = 'Parsing…';
+  try {
+    const parsed = await (await fetch('/api/transcript', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session, text }),
+    })).json();
+    if (!parsed.total) { $('trinfo').textContent = 'No claim lines found in that transcript.'; return; }
+    $('trdlg').close();
+    $('empty')?.remove();
+    const prog = document.createElement('div');
+    prog.className = 'pending';
+    prog.innerHTML = `<span class="spin" aria-hidden="true"></span>
+      <span id="progtext">Checking transcript: 0 of ${parsed.total} lines…</span>`;
+    $('feed').appendChild(prog);
+    for (let i = 0; i < parsed.lines.length; i++) {
+      const e = await (await fetch('/api/claim', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session, text: parsed.lines[i] }),
+      })).json();
+      $('feed').appendChild(eventCard(e));
+      count[e.verdict] = (count[e.verdict] || 0) + 1;
+      updateRline();
+      $('progtext').textContent = `Checking transcript: ${i + 1} of ${parsed.total} lines…`;
+    }
+    prog.remove();
+    const last = $('feed').lastElementChild;
+    last && last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    $('trinfo').textContent = 'Failed: ' + err;
+  } finally {
+    $('trgo').disabled = false;
+    $('trtext').value = ''; $('trfile').value = '';
+  }
+});
 </script>
 </body>
 </html>

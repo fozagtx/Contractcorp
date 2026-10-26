@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
-from agent import claim_check, memory, zetaris
+from agent import claim_check, memory, transcript, zetaris
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 COCKPIT = os.path.join(AGENT_DIR, "cockpit", "index.html")
@@ -24,10 +24,23 @@ class ClaimIn(BaseModel):
     text: str
 
 
+class TranscriptIn(BaseModel):
+    session: str = ""
+    text: str
+
+
 @app.post("/api/claim")
 def post_claim(body: ClaimIn):
     session = body.session or time.strftime("%Y%m%d")
     return claim_check.check_claim(session, body.text.strip())
+
+
+@app.post("/api/transcript")
+def post_transcript(body: TranscriptIn):
+    """Parse a pasted/uploaded transcript into the rep's claim lines."""
+    session = body.session or time.strftime("%Y%m%d")
+    lines = transcript.parse_transcript(body.text)
+    return {"session": session, "lines": lines, "total": len(lines)}
 
 
 @app.get("/api/clauses")

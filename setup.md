@@ -1,8 +1,8 @@
-# Open Agent Hackathon 2026 — Workspace Setup
+# Open Agent Hackathon 2026, Workspace Setup
 
 Runbook for this workspace: `~/Desktop/openagent`
 Distilled from the official Participant Setup Guide (PDF, last updated 21 October 2026).
-Work top to bottom. Each phase ends with a **Done when** gate — do not move on until it passes.
+Work top to bottom. Each phase ends with a **Done when** gate, do not move on until it passes.
 
 ---
 
@@ -10,7 +10,7 @@ Work top to bottom. Each phase ends with a **Done when** gate — do not move on
 
 | Layer | Tool | Requirement |
 |---|---|---|
-| DATA | **Zetaris** — internal data, runs in Docker (headline sponsor) | Must use |
+| DATA | **Zetaris**, internal data, runs in Docker (headline sponsor) | Must use |
 | BUILD | **Cursor** (recommended, not required) + **1+ Meterless Engine** in working code | Engine required |
 | POWER | **Meterless Nightshift** as primary AI provider; **NVIDIA Nemotron** via Nightshift | Must use |
 
@@ -19,7 +19,7 @@ Work top to bottom. Each phase ends with a **Done when** gate — do not move on
 **The one rule:** your coding tool's own models (Composer / Grok, on Cursor credit) pay while
 you code. The Nemotron route (Meterless Nightshift, or NVIDIA's free API) is used only when
 your product runs. Never put the Meterless Runtime token or NVIDIA key into Cursor's
-model-provider settings — the NVIDIA key goes in Nightshift's Providers tab, and the
+model-provider settings, the NVIDIA key goes in Nightshift's Providers tab, and the
 Nightshift URL + API key go into your app.
 
 **Event tracks:** *Solving Fragmented Intelligence* and *The Agent That Can Explain Why* —
@@ -28,7 +28,7 @@ answer in Zetaris-first data fits both tracks.
 
 **NVIDIA Nemotron Award (DGX Spark):** power at least one working feature with a Nemotron
 model through Meterless Nightshift. Judging: technical depth, usefulness, polish. Simply
-listing Nemotron as an available model does not count — show what it actually does.
+listing Nemotron as an available model does not count, show what it actually does.
 
 ---
 
@@ -36,7 +36,7 @@ listing Nemotron as an available model does not count — show what it actually 
 
 | Requirement | State | Action |
 |---|---|---|
-| RAM >= 16 GB | 16 GB (Apple M5) | OK — give Docker 8 GB / 4 CPUs |
+| RAM >= 16 GB | 16 GB (Apple M5) | OK, give Docker 8 GB / 4 CPUs |
 | Disk >= 15 GB free | ~124 GB free | OK |
 | Docker >= v25 | 29.2.1, Compose v5.0.2 | OK |
 | Python 3 | 3.14.7 | OK |
@@ -56,11 +56,11 @@ Apple Silicon specifics:
 
 ## 2. Order of operations
 
-1. **Start Phase A (Zetaris) first** — it downloads ~4 GB of container images and takes
+1. **Start Phase A (Zetaris) first**, it downloads ~4 GB of container images and takes
    30–45 min. Register and kick off the install, then do B and C while it runs.
 2. Phase B (Cursor) and Phase C (Nightshift + NVIDIA) take minutes each.
-3. Phase D (scaffold) is already done in this workspace — see below.
-4. Phase E (verification) — run at least two days before kickoff.
+3. Phase D (scaffold) is already done in this workspace, see below.
+4. Phase E (verification), run at least two days before kickoff.
 
 ---
 
@@ -69,19 +69,19 @@ Apple Silicon specifics:
 ```
 ~/Desktop/openagent/
 ├── setup.md               # this runbook
-├── .env                   # your secrets — create from .env.example, gitignored
+├── .env                   # your secrets, create from .env.example, gitignored
 ├── .env.example           # template listing every setting you need
 ├── .gitignore             # keeps .env and installs out of git
 ├── smoke_test.py          # the all-in-one Data+Power check (Phase E)
 ├── .venv/                 # Python venv with openai, python-dotenv, requests
 ├── prompts/               # optional: saved Meterless prompt-library files
 ├── agent/                 # build during the event (see Phase D scaffold prompt)
-├── getting-started/       # Zetaris recipes repo (clone in A8) — reference only
-├── zetaris-platform/      # Zetaris Docker install (unzip in A3) — gitignored
+├── getting-started/       # Zetaris recipes repo (clone in A8), reference only
+├── zetaris-platform/      # Zetaris Docker install (unzip in A3), gitignored
 └── GenAI Works Hackathon.pdf  # the source guide (gitignored)
 ```
 
-Three secrets to collect along the way — all end up in `.env` (never in git):
+Three secrets to collect along the way, all end up in `.env` (never in git):
 
 1. Zetaris password (you set it yourself in A4)
 2. Zetaris API key (created in the web UI in A9)
@@ -89,7 +89,7 @@ Three secrets to collect along the way — all end up in `.env` (never in git):
 
 ---
 
-## Phase A — DATA: Zetaris
+## Phase A, DATA: Zetaris
 
 ### A1. Register and download (browser, ~5 min)
 
@@ -104,7 +104,7 @@ Full instructions: <https://github.com/zetaris/getting-started/blob/main/README.
 ### A2. Prepare Docker (GUI, ~2 min)
 
 1. Open Docker Desktop → Settings → Resources: give Docker **8 GB memory** and **4 CPUs**
-   (preflight fails below 6 GB). Disk: at least 15 GB free — you have ~124 GB.
+   (preflight fails below 6 GB). Disk: at least 15 GB free, you have ~124 GB.
 2. Settings → General (or Rosetta section): enable **Use Rosetta** for x86/amd64
    emulation on Apple Silicon.
 3. Apply and restart Docker, then confirm:
@@ -129,7 +129,7 @@ before continuing. **Run all remaining Zetaris commands from this `zetaris-platf
 
 ### A4. Set your administrator account (before the first start)
 
-Edit `.env` inside `zetaris-platform` — keep every supplied value, set these three:
+Edit `.env` inside `zetaris-platform`, keep every supplied value, set these three:
 
 | Setting | What to put |
 |---|---|
@@ -159,7 +159,7 @@ chmod 600 .env
 docker compose config --quiet
 ```
 
-This `.env` belongs to the Zetaris platform — never commit it or copy it into your project.
+This `.env` belongs to the Zetaris platform, never commit it or copy it into your project.
 
 ### A5. Download and start Zetaris (~30–45 min; ~4 GB)
 
@@ -192,7 +192,7 @@ run it again.
 
 1. Open <http://localhost:3000>, sign in with the admin email/password from A4.
    If you kept a supplied password, change it immediately from the user menu.
-2. Open the **SQL Editor** and run `SELECT 1 AS one;` — expect one row containing `1`.
+2. Open the **SQL Editor** and run `SELECT 1 AS one;`, expect one row containing `1`.
 
 ### A8. Load your first dataset (PokeAPI recipe)
 
@@ -217,7 +217,7 @@ FROM pokeapi.pikachu_abilities_table;
 
 Expect 2 rows: `pikachu / static / false` and `pikachu / lightning-rod / true`.
 Leave the rest of the file (types, stats, Charizard) for later. For more data see the
-repo's recipe readiness guide — **skip the PUDL recipe** (Zetaris lists it as known to fail).
+repo's recipe readiness guide, **skip the PUDL recipe** (Zetaris lists it as known to fail).
 
 ### A9. Connect Cursor and your app to Zetaris
 
@@ -229,11 +229,11 @@ Routes on a local install:
 | REST API | `http://localhost:8888/api/v1.0` | Your agent sending SQL, reading JSON |
 | JDBC | `jdbc:zetaris:lightning@localhost:10000` | JDBC tools; needs Java 11+ and the driver file |
 
-Do **not** use port 8889 — it is internal to Zetaris. Full API reference:
+Do **not** use port 8889, it is internal to Zetaris. Full API reference:
 <http://localhost:8888/redoc/index.html>.
 
 1. In the Zetaris web UI, create an API key for your user and copy it immediately (it may
-   be shown only once). **Create the key yourself — do not ask an AI agent to create or
+   be shown only once). **Create the key yourself, do not ask an AI agent to create or
    fetch it.**
 2. Copy `.env.example` to `.env` in the project root and fill in the ZETARIS_* values:
 
@@ -271,7 +271,7 @@ docker compose stop      # stop, keeping your data
 docker compose start     # resume
 ```
 
-`docker compose down -v` deletes everything including data and encryption keys — only
+`docker compose down -v` deletes everything including data and encryption keys, only
 use it to start over.
 
 **Done when:** `./verify.sh` passes 9/9, `SELECT 1 AS one;` works in the SQL Editor, the
@@ -279,7 +279,7 @@ Pikachu query returns two rows, and your Zetaris API key is saved in `.env`.
 
 ---
 
-## Phase B — BUILD: Cursor + Meterless Engines
+## Phase B, BUILD: Cursor + Meterless Engines
 
 ### B1. Set up your coding tool
 
@@ -287,7 +287,7 @@ Any AI coding agent that can edit files and run commands works (Cursor, Claude C
 Windsurf, GitHub Copilot). Cursor is recommended and used in the workshop.
 
 1. Download Cursor: <https://cursor.com/download>, install, sign in. Grok and Composer
-   are included, paid from your Cursor credit — no API key of your own needed.
+   are included, paid from your Cursor credit, no API key of your own needed.
 2. Open the Agent chat and pick a model: **Composer** for everyday speed, **Grok** for
    harder, longer-running work.
 3. New to AI coding? Work through the short Cursor Learn lessons on tool calling and
@@ -297,7 +297,7 @@ Windsurf, GitHub Copilot). Cursor is recommended and used in the workshop.
 
 ### B2. Build with Meterless Engines (REQUIRED: 1+ engine in working code)
 
-Engines are open-source building blocks. A **working integration is required** — merely
+Engines are open-source building blocks. A **working integration is required**, merely
 mentioning an engine in your submission, copying a prompt, or adding an unused
 dependency does NOT satisfy the Build rule.
 
@@ -314,7 +314,7 @@ Workflow via the prompt library at <https://meterless.ai/engines.html>:
    product*. Still deciding? Use *IDEATE → Find my best use case* or the one-prompt
    starter. Copy the prompt into your agent chat and describe what you want to build.
    Let the agent recommend which engine belongs in your product.
-2. **Implement (IMPLEMENT):** pick the prompt that fits — *Give my agent memory*
+2. **Implement (IMPLEMENT):** pick the prompt that fits, *Give my agent memory*
    (H-Mem), *Long tasks, flat context* (Markovian), *Keep parallel agents in sync*
    (World Model), *Route tools by intent* (Scout Intent), or *Scaffold a working agent*
    if starting from nothing (keep its engine wiring intact as you adapt it). Have the
@@ -333,7 +333,7 @@ on its own it does not meet the Build requirement.
 
 ### B3. Vibe coding workshop
 
-Aired 20 October, 9:00 PM PST — watch the recording: <https://youtu.be/Qxg5xCJIAcQ>.
+Aired 20 October, 9:00 PM PST, watch the recording: <https://youtu.be/Qxg5xCJIAcQ>.
 It builds a small agent from scratch using Cursor + the Meterless prompt library. Come
 with all three layers set up so you can follow along on your own machine.
 
@@ -345,7 +345,7 @@ test passes with evidence you can show.
 
 ---
 
-## Phase C — POWER: Meterless Nightshift + NVIDIA Nemotron
+## Phase C, POWER: Meterless Nightshift + NVIDIA Nemotron
 
 **The Power rule:** your app must support Meterless Nightshift as a **primary AI
 provider**. Your app sends requests to Nightshift; Nightshift serves them with the local
@@ -364,7 +364,7 @@ or cloud models you configure.
    text-request checks.
 
 The official Power Prompt specifies the OpenAI-compatible API, authentication, model
-discovery and error states — use the live Engines page as your implementation contract.
+discovery and error states, use the live Engines page as your implementation contract.
 The NVIDIA API key is configured inside Nightshift, never hard-coded into your app.
 
 ### C2. Download and install Nightshift
@@ -379,7 +379,7 @@ is the AI backend your product calls.
 4. Download the verified edition, install, launch. Complete any first-run prompts and
    leave Nightshift running while you test.
 
-Use the installed edition with its Runtime/API hotspot — the free browser experience
+Use the installed edition with its Runtime/API hotspot, the free browser experience
 does not necessarily expose the local Runtime your app needs.
 
 ### C3. Add NVIDIA in Nightshift's Providers tab
@@ -391,10 +391,10 @@ does not necessarily expose the local Runtime your app needs.
 3. In Nightshift: **Setup tab → Providers** (sub-menu) → select **NVIDIA** from the
    Cloud Providers list.
 4. Paste the NVIDIA API key into the NVIDIA credential field and save.
-5. Confirm NVIDIA is connected — this unlocks NVIDIA models in Nightshift's catalog.
+5. Confirm NVIDIA is connected, this unlocks NVIDIA models in Nightshift's catalog.
    Refresh the model list if needed.
 
-The NVIDIA key goes in **Providers** — not in the Console and not in your app's `.env`.
+The NVIDIA key goes in **Providers**, not in the Console and not in your app's `.env`.
 
 ### C4. Configure your first model lanes
 
@@ -407,7 +407,7 @@ Use each lane's **Add** button to add a model (or load a fleet from the Fleets s
 | Lane 2: deep worker | `nvidia/nemotron-3.5-super-vl-120b-a12b` | Complex reasoning, planning, second opinions |
 | Optional judge lane | A suitable available Nemotron or other supported model | Check outputs against your app's requirements |
 
-These are examples, not entitlements — select the exact Nemotron names shown in your
+These are examples, not entitlements, select the exact Nemotron names shown in your
 NVIDIA catalog and Nightshift's model picker. You can start with just Lane 1. Local
 models are optional; you don't need a local download to use NVIDIA-hosted endpoints.
 
@@ -416,7 +416,7 @@ and confirm the response plus the selected provider and model.
 
 ### C5. Open the Console and connect your app
 
-The **Console** (top right of Nightshift) holds your Runtime URL and API key — these are
+The **Console** (top right of Nightshift) holds your Runtime URL and API key, these are
 Nightshift connection credentials, separate from the NVIDIA key.
 
 1. Click Console, find the Runtime/API connection details.
@@ -429,9 +429,9 @@ METERLESS_RUNTIME_TOKEN=<your-real-nightshift-runtime-token>
 METERLESS_MODEL=meterless/auto
 ```
 
-`http://127.0.0.1:8088/v1` is only an example for apps on the same computer — copy the
+`http://127.0.0.1:8088/v1` is only an example for apps on the same computer, copy the
 URL the Console actually shows. Use the real Runtime token, never the NVIDIA provider
-key or a placeholder. `meterless/auto` is a routing mode, not an NVIDIA model ID — use
+key or a placeholder. `meterless/auto` is a routing mode, not an NVIDIA model ID, use
 Runtime model discovery to pin an available `meterless/*` route.
 
 **Runtime contract** (your coding assistant should implement this from the Power Prompt):
@@ -461,7 +461,7 @@ curl -sS http://127.0.0.1:8088/v1/chat/completions \
 Then test the real feature end to end: app → Meterless Runtime → active NVIDIA Nemotron
 lane → result shown in your app. Check Nightshift's run details/logs/receipts to confirm
 which model handled the request. `meterless/auto` may route to a non-NVIDIA model if
-several are eligible — pin a Nemotron-backed lane (or demonstrate an explicit Nemotron
+several are eligible, pin a Nemotron-backed lane (or demonstrate an explicit Nemotron
 task) so your award evidence is unambiguous.
 
 **Done when:** Meterless is a working primary AI provider in your app (not just a
@@ -475,12 +475,12 @@ award, the underlying run visibly uses Nemotron.
 
 In a short demo: (1) the finished app solving a useful problem, (2) its Meterless
 provider connection, (3) one real request passing through Nightshift and returning a
-result. You can show where the app connects to the Console-provided Runtime URL — hide
+result. You can show where the app connects to the Console-provided Runtime URL, hide
 all keys and tokens.
 
 ---
 
-## Phase D — Putting it together (scaffold)
+## Phase D, Putting it together (scaffold)
 
 The app pattern is a simple loop: Nemotron decides what to do → your code fetches the
 data it asks for from Zetaris → the result goes back to Nemotron → repeat until it can
@@ -493,7 +493,7 @@ User asks → (2) app sends question to Nemotron via Meterless + tool descriptio
 → (5) repeat 3–4 as needed → Nemotron writes the final, data-grounded answer
 ```
 
-Build is where all this code is written — Cursor's Composer/Grok do the heavy lifting on
+Build is where all this code is written, Cursor's Composer/Grok do the heavy lifting on
 your Cursor credit.
 
 **Scaffold with Cursor** (paste into Agent chat; attach a Meterless prompt file with `@`
@@ -511,13 +511,13 @@ explain each file.
 
 Two patterns that put Zetaris at the center:
 
-1. **Ground every answer in Zetaris** — the agent queries Zetaris first for facts, and
+1. **Ground every answer in Zetaris**, the agent queries Zetaris first for facts, and
    uses web data only to add context. Traceable answers are what *The Agent That Can
    Explain Why* asks for.
-2. **Bring outside data into Zetaris** — register a web API as a table (like the PokeAPI
+2. **Bring outside data into Zetaris**, register a web API as a table (like the PokeAPI
    starter) so a public JSON API sits alongside your business data in one SQL query.
 
-Files on your laptop: Zetaris cannot read a file sitting on your laptop — put it in
+Files on your laptop: Zetaris cannot read a file sitting on your laptop, put it in
 storage Zetaris can reach (such as an S3 bucket) before registering it.
 
 Check the event rules for how much project code may be prepared in advance.
@@ -527,9 +527,9 @@ and `.gitignore` keeps them out of version control.
 
 ---
 
-## Phase E — Verify your setup (two days before kickoff)
+## Phase E, Verify your setup (two days before kickoff)
 
-### Check 1 — DATA: Zetaris is running and answers queries
+### Check 1, DATA: Zetaris is running and answers queries
 
 From `zetaris-platform/` run `./verify.sh`. Then in the SQL Editor at
 <http://localhost:3000> run `SELECT 1 AS one;` and the Pikachu query from A8.
@@ -537,7 +537,7 @@ From `zetaris-platform/` run `./verify.sh`. Then in the SQL Editor at
 **PASS:** all nine `verify.sh` checks pass, `SELECT 1` returns one row, the Pikachu
 query returns two rows.
 
-### Check 2 — BUILD: Cursor builds on its own models
+### Check 2, BUILD: Cursor builds on its own models
 
 In the Agent chat, select Composer or Grok and ask it to create and run a Python file
 that prints "hello".
@@ -545,7 +545,7 @@ that prints "hello".
 **PASS:** the file appears in your project and "hello" prints in the terminal, without
 entering any API key.
 
-### Check 3 — DATA + POWER: the all-in-one smoke test
+### Check 3, DATA + POWER: the all-in-one smoke test
 
 `smoke_test.py` (in this workspace) sends a real query to Zetaris through its REST API
 and a real prompt to Nemotron through your chosen route. It needs in `.env`:
@@ -567,7 +567,7 @@ source .venv/bin/activate
 python smoke_test.py
 ```
 
-**PASS:** all three lines say PASS. Each FAIL line includes the error — see
+**PASS:** all three lines say PASS. Each FAIL line includes the error, see
 Troubleshooting below.
 
 - Option A (Nightshift route): `MODEL_BASE_URL` = the Console URL (e.g.
@@ -584,25 +584,25 @@ Take all three MODEL_* settings from the **same** route.
 
 ## Ready-for-kickoff checklist
 
-- [x] 01 DATA — Zetaris Cloud account created and `zetaris-platform.zip` downloaded (26 Oct)
-- [x] 02 DATA — `./verify.sh` passes 9/9 and the Pikachu query returns two rows (26 Oct)
-- [x] 03 DATA — Zetaris API key created and saved in `.env` (26 Oct)
-- [x] 04 BUILD — Cursor 3.27.14 installed (sign in + Check 2 hello-world still pending)
-- [ ] 05 BUILD — Meterless prompt library downloaded (optional) and the workshop watched
-- [x] 06 POWER — Nemotron route via Meterless Nightshift (Option A): Runtime URL,
+- [x] 01 DATA, Zetaris Cloud account created and `zetaris-platform.zip` downloaded (26 Oct)
+- [x] 02 DATA, `./verify.sh` passes 9/9 and the Pikachu query returns two rows (26 Oct)
+- [x] 03 DATA, Zetaris API key created and saved in `.env` (26 Oct)
+- [x] 04 BUILD, Cursor 3.27.14 installed (sign in + Check 2 hello-world still pending)
+- [ ] 05 BUILD, Meterless prompt library downloaded (optional) and the workshop watched
+- [x] 06 POWER, Nemotron route via Meterless Nightshift (Option A): Runtime URL,
       Runtime token and model ID `nvidia/nemotron-3.5-lightning-30b-a3b` in `.env`,
       all from the same route; chain verified end to end (26 Oct)
-- [x] 07 ALL — `.env` listed in `.gitignore`, and `smoke_test.py` shows three PASS lines
+- [x] 07 ALL, `.env` listed in `.gitignore`, and `smoke_test.py` shows three PASS lines
       on the Nightshift route (26 Oct)
 
 Setup notes (26 Oct): Nightshift Runtime token lives in
 `~/Library/Application Support/ai.meterless.runtime/proxy-token` (same value as the
 Console Runtime token). Nightshift's first run auto-downloads a ~10 GB local model
-starter pack — cancelled; local models are optional and the judged lane is the
+starter pack, cancelled; local models are optional and the judged lane is the
 NVIDIA-hosted Nemotron. Admin password for `http://localhost:3000` is set in
 `zetaris-platform/.env`.
 
-## Phase D — built (26 Oct): ContractCop
+## Phase D, built (26 Oct): ContractCop
 
 The event project is built in `agent/` (see `agent/README.md` for the full
 record, measured results and the demo script). Quick facts:
@@ -611,14 +611,14 @@ record, measured results and the demo script). Quick facts:
   as two Zetaris REST tables (`clauseguard.contract_flat`, `clauseguard.policy_flat`),
   JOINed in one query per claim.
 - **BUILD**: Meterless **H-Mem** engine in working code (`agent/memory.py`),
-  with 6 conformance tests in `agent/tests/test_memory.py` — persistent
+  with 6 conformance tests in `agent/tests/test_memory.py`, persistent
   claim memory across calls.
 - **POWER**: claim-check runs on `nvidia/nemotron-3.5-lightning-30b-a3b` through
   Meterless Nightshift (`127.0.0.1:8088/v1`), thinking disabled for ~2.8s
   verdicts, retry on transient empty responses.
 - **Evidence**: 5/5 contradictions caught with correct clause IDs, 3/3 consistent
   claims, 0 false accusations, 10/12 strict fixture accuracy (the 2 "misses"
-  are defensible verbal-commitment readings — see README). 11 unit + 4
+  are defensible verbal-commitment readings, see README). 11 unit + 4
   integration tests pass.
 - **Run**: `.venv/bin/uvicorn agent.server:app --port 8600` → http://127.0.0.1:8600
 
@@ -637,7 +637,7 @@ record, measured results and the demo script). Quick facts:
 | DATA | REST requests return 401 | Zetaris API key missing, wrong or expired | Create a new key in the web UI, update `.env` |
 | DATA | REST requests return 400 | Wrong `X-Org-ID`, or `X-Request-ID` isn't a UUID | Org ID `1` on local; fresh UUID every request |
 | DATA | "Object already exists" | That create statement already ran | Check the existing object, reuse it, move on |
-| DATA | Table created but returns no rows | Zetaris server can't reach the source / wrong path | Check the source address — Zetaris itself (not just your laptop) must reach it |
+| DATA | Table created but returns no rows | Zetaris server can't reach the source / wrong path | Check the source address, Zetaris itself (not just your laptop) must reach it |
 | DATA | A file on your laptop won't query | Zetaris can't read laptop files | Put the file in reachable storage (e.g. S3 bucket), then register it |
 | BUILD | Grok/Composer missing from Cursor, or requests stop | Cursor credit inactive or exhausted | Check plan/usage in Cursor settings; ask organisers about credit |
 | BUILD | Charges on Meterless credit while coding | Meterless key ended up in Cursor's settings | Remove it from Cursor; code with Grok or Composer |
@@ -646,7 +646,7 @@ record, measured results and the demo script). Quick facts:
 | POWER | Nemotron returns 401 or 403 | Key doesn't match the route in `MODEL_BASE_URL` | Copy the key again from Meterless or build.nvidia.com |
 | POWER | Nemotron returns 404 / model not found | Model ID doesn't match the route's model list | Copy the exact model ID from Meterless or the NVIDIA model page |
 | POWER | Credit or rate-limit errors | Meterless credit exhausted, or NVIDIA free-tier limit hit | Wait and retry, check limits, or switch routes (change all three settings) |
-| ALL | `pip install` fails: externally-managed-environment | System Python blocks global installs | Use a venv — already created here: `.venv` |
+| ALL | `pip install` fails: externally-managed-environment | System Python blocks global installs | Use a venv, already created here: `.venv` |
 | ALL | `python` isn't found | Python missing or not on PATH | Reinstall Python 3 (this machine: 3.14.7 is fine) |
 
 Still stuck? Post in the **Help desk** channel on HackOS: <https://hackathon.genai.works/messages>.
