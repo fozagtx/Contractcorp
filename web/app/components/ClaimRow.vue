@@ -50,6 +50,20 @@ const footer = computed(() => {
   if (e.ms != null) parts.push(`total ${e.ms}ms`)
   return parts.join(' · ')
 })
+
+const showSaidSigned = computed(
+  () =>
+    props.e.verdict === 'contradiction' &&
+    !!(props.e.spans?.claim || props.e.spans?.clause),
+)
+
+const saidHtml = computed(() =>
+  markSpans(props.e.claim, [props.e.spans?.claim], 'm-said'),
+)
+
+const signedHtml = computed(() =>
+  markSpans(props.e.clause?.text ?? '', [props.e.spans?.clause], 'm-signed'),
+)
 </script>
 
 <template>
@@ -71,8 +85,18 @@ const footer = computed(() => {
       </span>
     </button>
     <div v-if="open" class="row-body">
+      <div v-if="showSaidSigned" class="svs">
+        <div class="panel">
+          <span class="plabel mono"><i class="pdot said" aria-hidden="true"></i>Rep said</span>
+          <p class="ptext" v-html="saidHtml"></p>
+        </div>
+        <div class="panel">
+          <span class="plabel mono"><i class="pdot signed" aria-hidden="true"></i>Contract says</span>
+          <p class="ptext" v-html="signedHtml"></p>
+        </div>
+      </div>
       <blockquote v-if="e.clause" class="clausequote">
-        <p>{{ e.clause.text }}</p>
+        <p v-html="signedHtml"></p>
         <figcaption class="mono">
           Clause {{ e.clause.clause_id }} · {{ e.clause.section }} · from Zetaris
         </figcaption>
@@ -146,6 +170,46 @@ const footer = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.svs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.panel {
+  background: #fbfaf7;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.plabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.pdot { width: 7px; height: 7px; border-radius: 50%; }
+.pdot.said { background: var(--red); }
+.pdot.signed { background: var(--green); }
+.ptext { font-size: 14px; line-height: 22px; }
+:deep(mark.m-said) {
+  background: #fdeceb;
+  color: var(--red);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+:deep(mark.m-signed) {
+  background: #e8f5ec;
+  color: var(--green);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+@media (max-width: 640px) {
+  .svs { grid-template-columns: 1fr; }
 }
 .clausequote {
   border-left: 2px solid var(--accent);

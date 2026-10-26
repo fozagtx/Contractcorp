@@ -33,6 +33,7 @@ export interface ClaimEvent {
   reason?: string
   memory?: { same_session: MemoryItem[]; earlier_calls: MemoryItem[] }
   hops?: Hop[]
+  spans?: { claim: string | null; clause: string | null }
   sql?: string
   sql_ms?: number
   model?: string

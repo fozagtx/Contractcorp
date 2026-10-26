@@ -1,5 +1,24 @@
 <script setup lang="ts">
 const cop = useContractCop()
+
+const contradictionsByClause = computed(() => {
+  const map = new Map<string, { count: number; spans: string[] }>()
+  for (const e of cop.events.value) {
+    if (e.verdict !== 'contradiction' || !e.clause) continue
+    const id = e.clause.clause_id
+    const entry = map.get(id) ?? { count: 0, spans: [] }
+    entry.count++
+    const span = e.spans?.clause
+    if (span && !entry.spans.includes(span)) entry.spans.push(span)
+    map.set(id, entry)
+  }
+  return map
+})
+
+function clauseHtml(text: string, clauseId: string) {
+  const spans = contradictionsByClause.value.get(clauseId)?.spans ?? []
+  return markSpans(text, spans, 'm-signed')
+}
 </script>
 
 <template>
@@ -15,8 +34,12 @@ const cop = useContractCop()
         <header>
           <span class="cid mono">Clause {{ c.clause_id }}</span>
           <h2>{{ c.section }}</h2>
+          <span
+            v-if="contradictionsByClause.get(c.clause_id)"
+            class="nc mono"
+          >{{ contradictionsByClause.get(c.clause_id)!.count }} contradictions this call</span>
         </header>
-        <p class="ctext">{{ c.text }}</p>
+        <p class="ctext" v-html="clauseHtml(c.text, c.clause_id)"></p>
         <div v-if="c.policy_id" class="cpol">
           <span class="label">Policy {{ c.policy_id }}</span>
           <p class="rule">{{ c.policy_rule }}</p>
@@ -62,7 +85,25 @@ h1 em { font-style: italic; }
   padding: 4px 10px;
   flex: none;
 }
-h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; flex: 1; }
+.nc {
+  flex: none;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--red);
+  background: #fdeceb;
+  border-radius: var(--pill);
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+:deep(mark.m-signed) {
+  background: #e8f5ec;
+  color: var(--green);
+  padding: 0 2px;
+  border-radius: 3px;
+}
 .ctext { margin-top: 14px; font-size: 16px; line-height: 26px; }
 .cpol {
   margin-top: 16px;

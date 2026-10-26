@@ -25,6 +25,25 @@ UNRELATED = "unrelated"
 UNCLEAR = "unclear"
 
 
+def _validate_span(text: str | None, span: object) -> str | None:
+    """Keep a model-copied span only if it is verbatim inside `text`.
+
+    Whitespace runs are collapsed on both sides before the case-insensitive
+    substring test; the returned value is sliced from the (normalized)
+    original text so the UI always shows source wording.
+    """
+    if not text or not isinstance(span, str) or not span.strip():
+        return None
+    t_norm = " ".join(text.split())
+    s_norm = " ".join(span.split())
+    if len(s_norm) > 160:
+        return None
+    idx = t_norm.lower().find(s_norm.lower())
+    if idx < 0:
+        return None
+    return t_norm[idx : idx + len(s_norm)]
+
+
 def _extract_json(text: str) -> dict:
     match = re.search(r"\{.*\}", text, re.S)
     if not match:
@@ -81,7 +100,14 @@ def _judge(claim: str, clauses: list, memories: dict) -> dict:
         '{"verdict": "contradiction" | "consistent" | "unclear", '
         '"clause_id": "<id from the clauses above or null>", '
         '"policy_id": "<id or null>", '
-        '"reason": "<one sentence citing what the claim contradicts>"}\n'
+        '"reason": "<one sentence citing what the claim contradicts>", '
+        '"claim_span": "<exact words copied from REP CLAIM that make the '
+        'commitment, or null>", '
+        '"clause_span": "<exact words copied from the chosen clause text '
+        'that the claim conflicts with, or null>"}\n'
+        "Copy spans verbatim, character for character, from the text above. "
+        "Do not paraphrase. Keep each span under 160 characters. Use null if "
+        "there is no conflict. "
         "contradiction = the claim conflicts with a clause or policy above. "
         "consistent = the clause/policy allows it. unclear = you cannot tell. "
         "A vague statement with no specific figure or commitment ('we might "
@@ -104,6 +130,8 @@ def _judge(claim: str, clauses: list, memories: dict) -> dict:
         "clause_id": clause_id,
         "policy_id": policy_id,
         "reason": (parsed.get("reason") or "")[:300],
+        "claim_span": parsed.get("claim_span"),
+        "clause_span": parsed.get("clause_span"),
     }
 
 
@@ -125,7 +153,9 @@ def check_claim(session_id: str, claim: str) -> dict:
             return {
                 "claim": claim, "verdict": UNRELATED, "clause": None,
                 "policy": None, "memory": memories, "hops": hops,
-                "sql": None, "model": llm.MODEL, "ms": int((time.time() - started) * 1000),
+                "sql": None, "model": llm.MODEL,
+                "spans": {"claim": None, "clause": None},
+                "ms": int((time.time() - started) * 1000),
             }
         fetched = zetaris.fetch_topic(route["topic"])
         if not fetched["clauses"]:
@@ -137,9 +167,16 @@ def check_claim(session_id: str, claim: str) -> dict:
                        if c["clause_id"] == verdict["clause_id"]), None)
         policy = ({"policy_id": clause["policy_id"], "rule": clause["policy_rule"]}
                   if clause else None)
+        spans = {"claim": None, "clause": None}
+        if verdict["verdict"] == "contradiction":
+            spans["claim"] = _validate_span(claim, verdict.get("claim_span"))
+            if clause:
+                spans["clause"] = _validate_span(
+                    clause["text"], verdict.get("clause_span"))
         memory.remember(session_id, claim, verdict["verdict"],
                         verdict["clause_id"], verdict["policy_id"])
         return {
+            "spans": spans,
             "claim": claim,
             "verdict": verdict["verdict"],
             "clause": ({"clause_id": clause["clause_id"], "section": clause["section"],
@@ -160,6 +197,7 @@ def check_claim(session_id: str, claim: str) -> dict:
             "claim": claim, "verdict": UNCLEAR, "clause": None,
             "policy": None, "memory": memories, "hops": hops,
             "sql": None, "model": llm.MODEL,
+            "spans": {"claim": None, "clause": None},
             "error": str(error)[:200],
             "ms": int((time.time() - started) * 1000),
         }
