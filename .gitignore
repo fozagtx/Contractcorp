@@ -37,3 +37,6 @@ web/.output/
 web/.data/
 web/dist/
 agent/logs/
+
+# Submission materials, kept local
+deck/
