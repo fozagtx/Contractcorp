@@ -1,0 +1,74 @@
+[
+  {
+    "claim": "We'll give you the 10 percent automatic discount on this order, no approval needed.",
+    "expected_verdict": "contradiction",
+    "expected_clause": "3.1",
+    "label": "false automatic discount"
+  },
+  {
+    "claim": "You get 24/7 support on the Standard Plan.",
+    "expected_verdict": "contradiction",
+    "expected_clause": "4.2",
+    "label": "24/7 on Standard"
+  },
+  {
+    "claim": "We promise 99.9 percent uptime on your Standard Plan subscription.",
+    "expected_verdict": "contradiction",
+    "expected_clause": "9.1",
+    "label": "99.9% uptime on Standard"
+  },
+  {
+    "claim": "If you terminate early, we will refund the fees for the remaining months.",
+    "expected_verdict": "contradiction",
+    "expected_clause": "8.3",
+    "label": "early termination refund"
+  },
+  {
+    "claim": "We can move your data to another region whenever it suits you.",
+    "expected_verdict": "contradiction",
+    "expected_clause": "6.1",
+    "label": "region move on demand"
+  },
+  {
+    "claim": "On the Standard Plan, support is available 9:00 to 17:00, Monday through Friday.",
+    "expected_verdict": "consistent",
+    "expected_clause": "4.2",
+    "label": "standard support hours"
+  },
+  {
+    "claim": "Any discount above ten percent has to be approved in writing by the VP of Sales first.",
+    "expected_verdict": "consistent",
+    "expected_clause": "3.1",
+    "label": "discount approval process"
+  },
+  {
+    "claim": "Either party can end the agreement for convenience with thirty days written notice.",
+    "expected_verdict": "consistent",
+    "expected_clause": "8.3",
+    "label": "termination notice"
+  },
+  {
+    "claim": "We might be able to do something on the price if you sign today.",
+    "expected_verdict": "unclear",
+    "expected_clause": null,
+    "label": "vague price hint"
+  },
+  {
+    "claim": "Our uptime is really good, trust me on that.",
+    "expected_verdict": "unclear",
+    "expected_clause": null,
+    "label": "vague uptime boast"
+  },
+  {
+    "claim": "How about that game last night?",
+    "expected_verdict": "unrelated",
+    "expected_clause": null,
+    "label": "small talk"
+  },
+  {
+    "claim": "I'll send the deck over after this call.",
+    "expected_verdict": "unrelated",
+    "expected_clause": null,
+    "label": "logistics, not a commitment"
+  }
+]

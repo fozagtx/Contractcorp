@@ -1,0 +1,31 @@
+# Secrets — never commit
+.env
+.env.local
+.env.*.local
+
+# Zetaris platform install (has its own .env with secrets)
+zetaris-platform/
+zetaris-platform.zip
+
+# Agent runtime state (persistent H-Mem memory)
+agent/memory.db
+*.db
+
+# Zetaris recipes repo (its own git repo, reference only)
+getting-started/
+
+# Source PDF (42 MB)
+GenAI Works Hackathon.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node / JS-TS stack (if you build with it)
+node_modules/
+dist/
+
+# macOS
+.DS_Store

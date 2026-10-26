@@ -1,0 +1,31 @@
+{
+  "policy_set": "Northwind Sales Desk Policy v4.2",
+  "owner": "Revenue Operations",
+  "rules": [
+    {
+      "policy_id": "POL-01",
+      "topic": "discounts",
+      "rule": "Any promised discount above 10% needs a written pre-approval recorded in the deal desk tool before it can be mentioned to the customer. Approval authority: VP of Sales."
+    },
+    {
+      "policy_id": "POL-02",
+      "topic": "support",
+      "rule": "24/7 or after-hours support may only be promised on Enterprise Plan deals. Check the SKU on the quote before making any availability commitment."
+    },
+    {
+      "policy_id": "POL-03",
+      "topic": "data_residency",
+      "rule": "Data location commitments beyond the signup region require a legal sign-off entry in the compliance register before signature."
+    },
+    {
+      "policy_id": "POL-04",
+      "topic": "uptime",
+      "rule": "Uptime commitments above 99.5% are reserved for Enterprise Plan quotes. Any higher figure requires a signed exception from Engineering."
+    },
+    {
+      "policy_id": "POL-05",
+      "topic": "termination",
+      "rule": "Refund offers on early termination contradict the MSA; finance cannot process them. Escalate to Legal instead of promising money back."
+    }
+  ]
+}
