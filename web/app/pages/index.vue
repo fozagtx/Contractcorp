@@ -29,7 +29,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         against the signed contract and shows the exact clause, the policy rule,
         the database query and the model behind the answer.
       </p>
+      <NuxtLink
+        v-if="!cop.contracts.value.length"
+        to="/contract"
+        class="needcard"
+      >Upload a contract first</NuxtLink>
       <ClaimComposer
+        v-else
         ref="composer"
         :checked="cop.checked.value"
         :contradictions="cop.contradictions.value"
@@ -53,6 +59,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </template>
 
 <style scoped>
+.needcard {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  color: var(--ink-2);
+  font-size: 14px;
+  text-decoration: none;
+}
+.needcard:hover { color: var(--ink); }
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 440px) minmax(0, 1fr);

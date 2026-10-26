@@ -37,6 +37,7 @@ web/.output/
 web/.data/
 web/dist/
 agent/logs/
+agent/store/
 
 # Submission materials, kept local
 deck/

@@ -12,6 +12,7 @@ Data layer by Zetaris, AI provider and H-Mem engine by Meterless Nightshift, mod
 
 ## Features
 
+- Upload your contract and policy documents (txt, md, pdf, json, csv); clauses are extracted verbatim, reviewed, and served through Zetaris
 - Claim check in one line: type a sentence, get `contradiction`, `consistent`, `unclear` or `unrelated`
 - Transcript mode: upload `.txt`, `.md`, `.vtt`, `.srt`, `.csv` or paste the call; timestamps and speaker labels are parsed, salesperson-side lines are checked one by one with progress
 - Evidence on every alert: verbatim clause from Zetaris, policy rule, reason, SQL, model id, per-hop latency
@@ -31,7 +32,7 @@ salesperson line
 
 | Layer | Where |
 |---|---|
-| Data: Zetaris | `agent/zetaris.py`, live REST queries; contract and policy registered as two REST tables and joined in one statement |
+| Data: Zetaris | `agent/zetaris.py`, live REST queries over `contractcop.contract_flat`/`policy_flat`, REST tables that read the upload store (`agent/store.py`, served at `/store/*.json`); topics come from the contract itself, not a fixed list |
 | Build: Meterless engine | `agent/memory.py`, H-Mem persistent claim memory with word-overlap recall |
 | Power: Nemotron via Nightshift | `agent/llm.py`, OpenAI-compatible client on the Nightshift Runtime, model `nvidia/nemotron-3.5-lightning-30b-a3b` |
 
@@ -54,6 +55,9 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn agent.server:app --port 8600   # agent API
 cd web && pnpm install && pnpm dev               # UI on http://localhost:3100
 ```
+
+Open http://localhost:3100/contract, upload the two sample documents from
+`agent/data/samples`, save, then check a call.
 
 For a single-port build: `cd web && pnpm generate`, then the agent on `http://localhost:8600` serves the UI.
 

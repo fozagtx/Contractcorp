@@ -89,6 +89,12 @@ async function run() {
         is checked against the contract, one by one.
       </p>
 
+      <NuxtLink
+        v-if="!cop.contracts.value.length"
+        to="/contract"
+        class="needcard"
+      >Upload a contract first</NuxtLink>
+      <template v-else>
       <label
         class="drop"
         :class="{ dragging }"
@@ -146,12 +152,24 @@ async function run() {
           Check {{ chosen.length }} lines
         </button>
       </div>
+      </template>
     </section>
     <FeedCard />
   </div>
 </template>
 
 <style scoped>
+.needcard {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  color: var(--ink-2);
+  font-size: 14px;
+  text-decoration: none;
+}
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 440px) minmax(0, 1fr);

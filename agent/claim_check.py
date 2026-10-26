@@ -25,6 +25,7 @@ import openai
 import requests
 
 from agent import llm, memory, zetaris
+from agent.textmatch import validate_span
 
 UNRELATED = "unrelated"
 UNCLEAR = "unclear"
@@ -98,23 +99,8 @@ def _trace(session_id: str, claim: str, topic, event: dict) -> None:
     }))
 
 
-def _validate_span(text: str | None, span: object) -> str | None:
-    """Keep a model-copied span only if it is verbatim inside `text`.
-
-    Whitespace runs are collapsed on both sides before the case-insensitive
-    substring test; the returned value is sliced from the (normalized)
-    original text so the UI always shows source wording.
-    """
-    if not text or not isinstance(span, str) or not span.strip():
-        return None
-    t_norm = " ".join(text.split())
-    s_norm = " ".join(span.split())
-    if len(s_norm) > 160:
-        return None
-    idx = t_norm.lower().find(s_norm.lower())
-    if idx < 0:
-        return None
-    return t_norm[idx : idx + len(s_norm)]
+def _validate_span(text, span, limit=160):
+    return validate_span(text, span, limit)
 
 
 def _extract_json(text: str) -> dict:
@@ -124,11 +110,12 @@ def _extract_json(text: str) -> dict:
     return json.loads(match.group(0))
 
 
-def _route(claim: str) -> dict:
+def _route(claim: str, topics: list) -> dict:
     """Hop 1: decide which topic to look up in Zetaris."""
+    topic_list = ", ".join(topics) or "none"
     prompt = (
         "You route sentences said by a sales rep on a customer call.\n"
-        "Topics: discounts, support, data_residency, termination, uptime.\n"
+        f"Topics: {topic_list}.\n"
         'If the sentence makes or implies a commitment about one of these, '
         'reply {"topic": "<one topic>"}. If it is small talk or nothing a '
         'contract could contradict, reply {"topic": null}. JSON only.\n\n'
@@ -137,7 +124,7 @@ def _route(claim: str) -> dict:
     content, _ = llm.chat([{"role": "user", "content": prompt}], max_tokens=600)
     parsed = _extract_json(content)
     topic = parsed.get("topic")
-    if topic is not None and topic not in zetaris.TOPIC_WHITELIST:
+    if topic is not None and topic not in topics:
         topic = None
     return {"topic": topic}
 
@@ -145,8 +132,9 @@ def _route(claim: str) -> dict:
 def _judge(claim: str, clauses: list, memories: dict) -> dict:
     """Hop 2: verdict against the literal clause text + policy + memory."""
     clause_lines = "\n".join(
-        f'- CLAUSE {c["clause_id"]} ({c["section"]}): {c["text"]}\n'
-        f'  POLICY {c["policy_id"]}: {c["policy_rule"]}'
+        f'- CLAUSE {c["clause_id"]} ({c["section"]}): {c["text"]}'
+        + (f'\n  POLICY {c["policy_id"]}: {c["policy_rule"]}'
+           if c.get("policy_id") else "")
         for c in clauses
     )
     memory_lines = []
@@ -216,21 +204,22 @@ def _judge(claim: str, clauses: list, memories: dict) -> dict:
     }
 
 
-def check_claim(session_id: str, claim: str) -> dict:
+def check_claim(session_id: str, claim: str, contract_id: str = "") -> dict:
     """The full pipeline for one rep sentence. Returns the event card."""
     hops = []
     started = time.time()
     memories = {"same_session": [], "earlier_calls": []}
     try:
-        memories = memory.recall(session_id, claim)
+        memories = memory.recall(session_id, claim, contract_id=contract_id)
     except Exception as error:  # a memory failure must not kill the check
         hops.append({"hop": "memory", "detail": str(error)[:120]})
     topic = None
     model = llm.MODEL
     try:
         t0 = time.time()
+        topics = zetaris.topics(contract_id)
         try:
-            route = _route(claim)
+            route = _route(claim, topics)
         except CONNECTION_ERRORS:
             if not SAMPLE_MODE:
                 raise
@@ -245,7 +234,7 @@ def check_claim(session_id: str, claim: str) -> dict:
                     "spans": {"claim": None, "clause": None},
                     "ms": int((time.time() - started) * 1000),
                 }
-                memory.remember(session_id, claim, UNCLEAR)
+                memory.remember(session_id, claim, UNCLEAR, contract_id=contract_id)
                 _trace(session_id, claim, topic, event)
                 return event
             route = {"topic": entry["topic"]}
@@ -253,7 +242,7 @@ def check_claim(session_id: str, claim: str) -> dict:
         hops.append({"hop": "route", "ms": int((time.time() - t0) * 1000)})
         topic = route["topic"]
         if route["topic"] is None:
-            memory.remember(session_id, claim, UNRELATED)
+            memory.remember(session_id, claim, UNRELATED, contract_id=contract_id)
             event = {
                 "claim": claim, "verdict": UNRELATED, "clause": None,
                 "policy": None, "memory": memories, "hops": hops,
@@ -263,7 +252,7 @@ def check_claim(session_id: str, claim: str) -> dict:
             }
             _trace(session_id, claim, topic, event)
             return event
-        fetched = zetaris.fetch_topic(route["topic"])
+        fetched = zetaris.fetch_topic(contract_id, route["topic"])
         if not fetched["clauses"]:
             raise zetaris.ZetarisError(f"no rows for topic {route['topic']}")
         t1 = time.time()
@@ -286,7 +275,8 @@ def check_claim(session_id: str, claim: str) -> dict:
                 spans["clause"] = _validate_span(
                     clause["text"], verdict.get("clause_span"))
         memory.remember(session_id, claim, verdict["verdict"],
-                        verdict["clause_id"], verdict["policy_id"])
+                        verdict["clause_id"], verdict["policy_id"],
+                        contract_id=contract_id)
         event = {
             "spans": spans,
             "claim": claim,
@@ -305,7 +295,7 @@ def check_claim(session_id: str, claim: str) -> dict:
         _trace(session_id, claim, topic, event)
         return event
     except Exception as error:  # never accuse on failure
-        memory.remember(session_id, claim, UNCLEAR)
+        memory.remember(session_id, claim, UNCLEAR, contract_id=contract_id)
         hops.append({"hop": "error", "detail": str(error)[:200]})
         event = {
             "claim": claim, "verdict": UNCLEAR, "clause": None,

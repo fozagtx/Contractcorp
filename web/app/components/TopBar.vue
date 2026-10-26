@@ -2,11 +2,12 @@
 defineProps<{ session: string; health: 'ok' | 'bad' | 'unknown' }>()
 
 const links = [
+  { to: '/contract', label: 'Contract' },
   { to: '/', label: 'Check' },
   { to: '/transcript', label: 'Transcript' },
-  { to: '/contract', label: 'Contract' },
   { to: '/report', label: 'Report' },
 ]
+const cop = useContractCop()
 </script>
 
 <template>
@@ -24,6 +25,22 @@ const links = [
       >{{ l.label }}</NuxtLink>
     </nav>
     <div class="right">
+      <select
+        v-if="cop.contracts.value.length > 1"
+        class="picker mono"
+        :value="cop.activeContractId.value"
+        @change="cop.setContract(($event.target as HTMLSelectElement).value)"
+      >
+        <option v-for="c in cop.contracts.value" :key="c.contract_id" :value="c.contract_id">
+          {{ c.name }}
+        </option>
+      </select>
+      <NuxtLink
+        v-else-if="cop.contracts.value.length === 0"
+        to="/contract"
+        class="picker mono empty"
+      >No contract yet</NuxtLink>
+      <span v-else class="picker mono">{{ cop.contracts.value[0]?.name }}</span>
       <span class="health mono">
         <span class="dot" :class="health" aria-hidden="true"></span>
         Zetaris · Nemotron
@@ -86,6 +103,16 @@ const links = [
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); }
 .dot.ok { background: var(--green); }
 .dot.bad { background: var(--red); }
+.picker {
+  font-size: 12px;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  padding: 5px 11px;
+  background: var(--card);
+  max-width: 200px;
+}
+.picker.empty { text-decoration: none; color: var(--ink-3); }
 .session {
   font-size: 12px;
   color: var(--ink-2);
@@ -97,6 +124,16 @@ const links = [
   .topbar { gap: 14px; padding: 0 16px; }
   .links { gap: 0; }
   .navlink { font-size: 13px; padding: 6px 9px; }
-  .health, .session { display: none; }
+  .health, .picker {
+  font-size: 12px;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  padding: 5px 11px;
+  background: var(--card);
+  max-width: 200px;
+}
+.picker.empty { text-decoration: none; color: var(--ink-3); }
+.session { display: none; }
 }
 </style>

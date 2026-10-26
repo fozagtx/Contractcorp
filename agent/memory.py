@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS claim_memory (
     norm TEXT NOT NULL,
     verdict TEXT NOT NULL,
     clause_id TEXT,
-    policy_id TEXT
+    policy_id TEXT,
+    contract_id TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_memory_session ON claim_memory(session_id, ts);
 CREATE INDEX IF NOT EXISTS idx_memory_norm ON claim_memory(norm);
@@ -54,16 +55,21 @@ def _normalize(text: str) -> str:
 def init() -> None:
     with closing(_connect()) as conn, conn:
         conn.executescript(_SCHEMA)
+        try:
+            conn.execute("ALTER TABLE claim_memory ADD COLUMN contract_id TEXT DEFAULT ''")
+        except sqlite3.OperationalError:
+            pass  # column already there
 
 
 def remember(session_id: str, claim: str, verdict: str,
-             clause_id: str | None = None, policy_id: str | None = None) -> None:
+             clause_id: str | None = None, policy_id: str | None = None,
+             contract_id: str = "") -> None:
     init()
     with closing(_connect()) as conn, conn:
         conn.execute(
-            "INSERT INTO claim_memory (session_id, ts, claim, norm, verdict, clause_id, policy_id) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (session_id, time.time(), claim, _normalize(claim), verdict, clause_id, policy_id),
+            "INSERT INTO claim_memory (session_id, ts, claim, norm, verdict, clause_id, policy_id, contract_id) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (session_id, time.time(), claim, _normalize(claim), verdict, clause_id, policy_id, contract_id),
         )
 
 
@@ -86,7 +92,7 @@ def _score(new_norm: str, old_norm: str) -> float:
     return len(overlap) / min(len(new_words), len(old_words))
 
 
-def recall(session_id: str, claim: str, limit: int = 4) -> dict:
+def recall(session_id: str, claim: str, limit: int = 4, contract_id: str = "") -> dict:
     """Memories worth attaching to a new claim-check.
 
     Returns {same_session: [...], earlier_calls: [...]} where each item is
@@ -98,9 +104,11 @@ def recall(session_id: str, claim: str, limit: int = 4) -> dict:
     norm = _normalize(claim)
     with closing(_connect()) as conn:
         rows = conn.execute(
-            "SELECT session_id, ts, claim, norm, verdict, clause_id "
+            "SELECT session_id, ts, claim, norm, verdict, clause_id, contract_id "
             "FROM claim_memory ORDER BY ts DESC LIMIT 400"
         ).fetchall()
+    if contract_id:
+        rows = [r for r in rows if (r["contract_id"] or "") == contract_id]
     same, earlier = [], []
     for row in rows:
         score = _score(norm, row["norm"])

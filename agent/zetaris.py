@@ -6,6 +6,7 @@ Bearer API key, X-Org-ID and a fresh UUID X-Request-ID.
 """
 import json
 import os
+import re
 import time
 import uuid
 
@@ -20,9 +21,15 @@ REST_URL = os.environ["ZETARIS_REST_URL"].rstrip("/")
 API_KEY = os.environ["ZETARIS_API_KEY"]
 ORG_ID = os.environ["ZETARIS_ORG_ID"]
 
-TOPIC_WHITELIST = {
-    "discounts", "support", "data_residency", "termination", "uptime",
-}
+ID_RE = re.compile(r"^[a-z0-9_.-]+$")
+
+_topic_cache: dict = {}  # contract_id -> (fetched_at, [topics])
+
+
+def _checked_id(value: str) -> str:
+    if not ID_RE.fullmatch(value or ""):
+        raise ZetarisError(f"bad identifier for query: {value!r}")
+    return value.replace("'", "''")
 
 
 class ZetarisError(RuntimeError):
@@ -74,31 +81,49 @@ def _fixture_rows(topic: str | None = None) -> list:
         if topic is not None and c["topic"] != topic:
             continue
         r = rules.get(c["topic"], {})
-        rows.append([c["clause_id"], c["section"], c["text"],
-                     r.get("policy_id"), r.get("rule")])
+        rows.append(["demo", c["clause_id"], c["section"], c["text"],
+                     c["topic"], r.get("policy_id"), r.get("rule")])
     return rows
 
 
-def fetch_topic(topic: str) -> dict:
-    """The demo cross-source query: contract clauses JOIN sales policy by topic.
+def topics(contract_id: str) -> list:
+    """Distinct topics for a contract; cached 60 s per id."""
+    if SAMPLE_MODE:
+        return sorted({r[4] for r in _fixture_rows()})
+    cached = _topic_cache.get(contract_id)
+    if cached and time.time() - cached[0] < 60:
+        return cached[1]
+    result = run_sql(
+        "SELECT DISTINCT topic FROM contractcop.contract_flat "
+        f"WHERE contract_id = '{_sql_id(contract_id)}'"
+    )
+    ts = sorted(row[0] for row in result["rows"])
+    _topic_cache[contract_id] = (time.time(), ts)
+    return ts
 
-    The topic comes from the model's routing step, so it is validated against
-    a whitelist before it is ever placed in SQL.
+
+def _sql_id(v: str) -> str:
+    return v if SAMPLE_MODE else _checked_id(v)
+
+
+def fetch_topic(contract_id: str, topic: str) -> dict:
+    """Clauses + matching policy rows for one contract and topic.
+
+    contract_id and topic are pattern-validated before they touch SQL.
     """
-    if topic not in TOPIC_WHITELIST:
-        raise ZetarisError(f"unknown topic: {topic!r}")
     sql = (
         "SELECT c.clause_id, c.section, c.text, p.policy_id, p.rule "
-        "FROM clauseguard.contract_flat c "
-        "JOIN clauseguard.policy_flat p ON c.topic = p.topic "
-        f"WHERE c.topic = '{topic}'"
+        "FROM contractcop.contract_flat c "
+        "LEFT JOIN contractcop.policy_flat p "
+        "ON c.topic = p.topic AND c.contract_id = p.contract_id "
+        f"WHERE c.contract_id = '{_sql_id(contract_id)}' AND c.topic = '{_sql_id(topic)}'"
     )
     if SAMPLE_MODE:
         started = time.time()
         clauses = [
             {
-                "clause_id": row[0], "section": row[1], "text": row[2],
-                "policy_id": row[3], "policy_rule": row[4],
+                "clause_id": row[1], "section": row[2], "text": row[3],
+                "policy_id": row[5], "policy_rule": row[6],
             }
             for row in _fixture_rows(topic)
         ]
@@ -118,22 +143,24 @@ def fetch_topic(topic: str) -> dict:
     return {"sql": sql, "clauses": clauses, "ms": result["ms"]}
 
 
-def clause_rail() -> list:
-    """All clauses with their policy counterparts, for the cockpit rail."""
+def clause_rail(contract_id: str) -> list:
+    """All clauses with their policy counterparts, for one contract."""
     if SAMPLE_MODE:
         return [
-            {"clause_id": row[0], "section": row[1], "text": row[2],
-             "policy_id": row[3], "policy_rule": row[4]}
-            for row in sorted(_fixture_rows(), key=lambda r: r[0])
+            {"clause_id": row[1], "section": row[2], "text": row[3],
+             "topic": row[4], "policy_id": row[5], "policy_rule": row[6]}
+            for row in sorted(_fixture_rows(), key=lambda r: r[1])
         ]
     result = run_sql(
-        "SELECT c.clause_id, c.section, c.text, p.policy_id, p.rule "
-        "FROM clauseguard.contract_flat c "
-        "JOIN clauseguard.policy_flat p ON c.topic = p.topic "
+        "SELECT c.clause_id, c.section, c.text, c.topic, p.policy_id, p.rule "
+        "FROM contractcop.contract_flat c "
+        "LEFT JOIN contractcop.policy_flat p "
+        "ON c.topic = p.topic AND c.contract_id = p.contract_id "
+        f"WHERE c.contract_id = '{_sql_id(contract_id)}' "
         "ORDER BY c.clause_id"
     )
     return [
         {"clause_id": row[0], "section": row[1], "text": row[2],
-         "policy_id": row[3], "policy_rule": row[4]}
+         "topic": row[3], "policy_id": row[4], "policy_rule": row[5]}
         for row in result["rows"]
     ]

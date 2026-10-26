@@ -51,6 +51,7 @@ export interface RailClause {
   clause_id: string
   section: string
   text: string
+  topic?: string
   policy_id: string
   policy_rule: string
 }
@@ -70,6 +71,8 @@ export interface Report {
 }
 
 const session = ref('')
+const contracts = ref<{ contract_id: string; name: string; clauses?: number; rules?: number }[]>([])
+const activeContractId = ref('')
 const events = ref<ClaimEvent[]>([])
 const pending = ref<PendingState | null>(null)
 const clauses = ref<RailClause[]>([])
@@ -134,14 +137,14 @@ export function useContractCop() {
 
   async function checkClaim(text: string) {
     const claim = text.trim()
-    if (!claim) return
+    if (!claim || !activeContractId.value) return
     ensureSession()
     pending.value = { stage: 'routing' }
     startStageCycler()
     try {
       const e = await $fetch<ClaimEvent>('/api/claim', {
         method: 'POST',
-        body: { session: session.value, text: claim },
+        body: { session: session.value, text: claim, contract_id: activeContractId.value },
       })
       e.open = e.verdict === 'contradiction'
       events.value.push(e)
@@ -173,7 +176,7 @@ export function useContractCop() {
       try {
         const e = await $fetch<ClaimEvent>('/api/claim', {
           method: 'POST',
-          body: { session: session.value, text: line },
+          body: { session: session.value, text: line, contract_id: activeContractId.value },
         })
         e.open = e.verdict === 'contradiction'
         events.value.push(e)
@@ -187,11 +190,40 @@ export function useContractCop() {
   async function loadClauses() {
     railError.value = false
     try {
-      const d = await $fetch<{ clauses: RailClause[] }>('/api/clauses')
+      const d = await $fetch<{ clauses: RailClause[] }>('/api/clauses', {
+        query: { contract_id: activeContractId.value || 'demo' },
+      })
       clauses.value = d.clauses
     } catch {
       railError.value = true
     }
+  }
+
+  async function loadContracts() {
+    try {
+      const d = await $fetch<{ contracts: { contract_id: string; name: string }[] }>(
+        '/api/contracts',
+      )
+      contracts.value = d.contracts
+      const saved =
+        typeof localStorage !== 'undefined'
+          ? localStorage.getItem('cc_contract')
+          : null
+      const ids = new Set(contracts.value.map((c) => c.contract_id))
+      activeContractId.value =
+        saved && ids.has(saved) ? saved : (contracts.value[0]?.contract_id ?? '')
+    } catch {
+      contracts.value = []
+      activeContractId.value = ''
+    }
+  }
+
+  function setContract(id: string) {
+    if (id === activeContractId.value) return
+    activeContractId.value = id
+    if (typeof localStorage !== 'undefined') localStorage.setItem('cc_contract', id)
+    newSession()
+    loadClauses()
   }
 
   async function loadHealth() {
@@ -221,6 +253,10 @@ export function useContractCop() {
   }
 
   return {
+    contracts,
+    activeContractId,
+    setContract,
+    loadContracts,
     session,
     events,
     pending,

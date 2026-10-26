@@ -25,18 +25,28 @@ def test_zetaris_select_one():
     assert result["rows"] == [["1"]]
 
 
-def test_zetaris_clause_rail_has_all_five_clauses():
-    rail = zetaris.clause_rail()
-    ids = sorted(c["clause_id"] for c in rail)
-    assert ids == ["3.1", "4.2", "6.1", "8.3", "9.1"]
+def _first_contract_id():
+    from agent import store
+    contracts = store.list_contracts()
+    if not contracts:
+        import pytest
+        pytest.skip("no contract saved in the store")
+    return contracts[0]["contract_id"]
+
+
+def test_zetaris_clause_rail_returns_contract_clauses():
+    rail = zetaris.clause_rail(_first_contract_id())
+    assert rail, "clause rail empty for the saved contract"
+    assert all("clause_id" in c and "text" in c for c in rail)
 
 
 def test_zetaris_cross_source_join():
-    fetched = zetaris.fetch_topic("uptime")
-    assert fetched["clauses"], "the JOIN must return the uptime clause + policy"
+    cid = _first_contract_id()
+    topic = zetaris.topics(cid)[0]
+    fetched = zetaris.fetch_topic(cid, topic)
+    assert fetched["clauses"], "the JOIN must return at least one clause"
     clause = fetched["clauses"][0]
-    assert clause["clause_id"] == "9.1"
-    assert clause["policy_id"] == "POL-04"
+    assert clause["clause_id"] and clause["text"]
 
 
 @pytest.mark.skipif(os.environ.get("SKIP_ACCURACY") == "1",
@@ -56,7 +66,7 @@ def test_labeled_claims_accuracy():
     session = "accuracy-run-" + time.strftime("%H%M%S")
     for item in claims:
         t0 = time.time()
-        card = claim_check.check_claim(session, item["claim"])
+        card = claim_check.check_claim(session, item["claim"], _first_contract_id())
         latencies.append(time.time() - t0)
         verdict_ok = card["verdict"] == item["expected_verdict"]
         clause_ok = (card["clause"] or {}).get("clause_id") == item["expected_clause"]

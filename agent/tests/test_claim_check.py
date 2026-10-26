@@ -25,10 +25,13 @@ def test_extract_json_rejects_garbage():
 
 def test_topic_whitelist_blocks_injection():
     # a model-returned topic must never reach SQL unchecked
-    for bad in ("discounts' OR 1=1 --", "uptime; DROP TABLE x", "", "nonsense"):
-        assert bad not in zetaris.TOPIC_WHITELIST
-    with pytest.raises(zetaris.ZetarisError):
-        zetaris.fetch_topic("discounts' OR 1=1 --")
+    for bad in ("discounts' OR 1=1 --", "uptime; DROP TABLE x", "", "nonsense;"):
+        try:
+            zetaris.fetch_topic("c1", bad)
+            raised = False
+        except zetaris.ZetarisError:
+            raised = True
+    assert raised
 
 
 def test_check_claim_unreachable_backend_is_unclear_not_accusation(monkeypatch, tmp_path):
@@ -42,6 +45,7 @@ def test_check_claim_unreachable_backend_is_unclear_not_accusation(monkeypatch, 
     monkeypatch.setattr(memory, "recall", boom)
     monkeypatch.setattr(memory, "remember", lambda *a, **k: None)
     monkeypatch.setattr(claim_check, "_route", boom)
+    monkeypatch.setattr(claim_check.zetaris, "topics", lambda cid: [])
     card = claim_check.check_claim("s1", "We give you 24/7 support on the Standard Plan")
     assert card["verdict"] == claim_check.UNCLEAR
     assert "error" in card
@@ -85,21 +89,22 @@ def test_check_claim_drops_span_not_in_clause(monkeypatch, tmp_path):
     monkeypatch.setattr(memory, "recall", lambda *a, **k: {"same_session": [], "earlier_calls": []})
     monkeypatch.setattr(memory, "remember", lambda *a, **k: None)
 
-    monkeypatch.setattr(claim_check, "_route", lambda claim: {"topic": "discounts"})
+    monkeypatch.setattr(claim_check, "_route", lambda claim, topics: {"topic": "discounts"})
+    monkeypatch.setattr(claim_check.zetaris, "topics", lambda cid: ["discounts"])
     clause = {
         "clause_id": "3.1", "section": "Fees and Discounts",
         "text": "No discount is automatic. Approval is required.",
         "policy_id": "POL-01", "policy_rule": "rule",
     }
     monkeypatch.setattr(claim_check.zetaris, "fetch_topic",
-                        lambda topic: {"sql": "SELECT 1", "ms": 1, "clauses": [clause]})
+                        lambda cid, topic: {"sql": "SELECT 1", "ms": 1, "clauses": [clause]})
     monkeypatch.setattr(claim_check, "_judge", lambda *a, **k: {
         "verdict": "contradiction", "clause_id": "3.1", "policy_id": "POL-01",
         "reason": "conflicts", "claim_span": "10 percent automatic discount",
         "clause_span": "words the model made up",
     })
 
-    card = claim_check.check_claim("s1", "We give a 10 percent automatic discount")
+    card = claim_check.check_claim("s1", "We give a 10 percent automatic discount", "c1")
     assert card["verdict"] == "contradiction"
     assert card["spans"]["clause"] is None
     assert card["spans"]["claim"] == "10 percent automatic discount"

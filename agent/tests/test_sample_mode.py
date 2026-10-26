@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-import openai
+import requests
 import pytest
 
 from agent import claim_check, zetaris
@@ -21,15 +21,15 @@ def sample_on(monkeypatch, tmp_path):
 
 
 def test_sample_fetch_topic_discounts(sample_on):
-    out = zetaris.fetch_topic("discounts")
+    out = zetaris.fetch_topic("demo", "discounts")
     assert out["clauses"][0]["clause_id"] == "3.1"
     assert "-- SAMPLE_MODE: served from agent/data fixtures, not Zetaris" in out["sql"]
-    assert "WHERE c.topic = 'discounts'" in out["sql"]
+    assert "c.topic = 'discounts'" in out["sql"] and "contractcop.contract_flat" in out["sql"]
 
 
 def test_sample_check_claim_recorded(sample_on, monkeypatch):
     def dead(*a, **k):
-        raise openai.APIConnectionError(request=None)
+        raise requests.exceptions.ConnectionError("nightshift down")
 
     monkeypatch.setattr(claim_check.llm, "chat", dead)
     card = claim_check.check_claim(
@@ -41,7 +41,7 @@ def test_sample_check_claim_recorded(sample_on, monkeypatch):
 
 def test_sample_unknown_claim_is_unclear(sample_on, monkeypatch):
     def dead(*a, **k):
-        raise openai.APIConnectionError(request=None)
+        raise requests.exceptions.ConnectionError("nightshift down")
 
     monkeypatch.setattr(claim_check.llm, "chat", dead)
     card = claim_check.check_claim("s1", "This claim was never recorded anywhere.")
@@ -58,5 +58,5 @@ def test_live_fetch_topic_calls_rest(monkeypatch):
         return {"columns": [], "rows": [], "total": 0, "ms": 1}
 
     monkeypatch.setattr(zetaris, "run_sql", fake_run_sql)
-    zetaris.fetch_topic("discounts")
-    assert "WHERE c.topic = 'discounts'" in called["sql"]
+    zetaris.fetch_topic("c1", "discounts")
+    assert "contractcop.contract_flat" in called["sql"] and "c.topic = 'discounts'" in called["sql"]

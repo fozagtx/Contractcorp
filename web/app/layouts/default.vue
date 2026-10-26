@@ -3,7 +3,7 @@ const cop = useContractCop()
 
 onMounted(() => {
   cop.loadHealth()
-  cop.loadClauses()
+  cop.loadContracts().then(() => cop.loadClauses())
 })
 </script>
 
