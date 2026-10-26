@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <style>
   :root {
     --bg: #ffffff; --surface: #fafafa; --raised: #f4f4f5; --panel: #fbfbfc;
@@ -31,10 +32,9 @@
     -webkit-font-smoothing: antialiased;
   }
   button { font: inherit; cursor: pointer; }
-  input { font: inherit; }
+  input, textarea { font: inherit; }
   :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 4px; }
 
-  /* header */
   header {
     display: flex; align-items: center; gap: 16px;
     padding: 0 20px; height: 52px; flex: none;
@@ -43,8 +43,7 @@
   .wordmark { display: flex; align-items: center; gap: 10px; }
   .wordmark .mark {
     width: 26px; height: 26px; border-radius: 7px; background: var(--text);
-    display: grid; place-items: center;
-    font-weight: 700; font-size: 14px; color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: 14px; color: #fff;
   }
   .wordmark .name { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
   .wordmark .tag { color: var(--text-3); font-size: 13px; margin-left: 2px; }
@@ -71,7 +70,6 @@
   .rail-sub { font-size: 12px; color: var(--text-3); margin-bottom: 14px; line-height: 1.5; }
   .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
-  /* clause rail */
   .clause {
     border: 1px solid var(--line); background: var(--bg);
     border-radius: var(--r-md); padding: 12px 13px; margin-bottom: 9px;
@@ -88,12 +86,13 @@
   .clause .policy-line { display: none; margin-top: 9px; padding-top: 9px;
     border-top: 1px dashed var(--line); font-size: 12px; color: var(--text-3); line-height: 1.5; }
   .clause.open .policy-line { display: block; }
-  .rail-skeleton .clause { height: 74px; border-radius: var(--r-md);
+  .skeleton {
+    height: 74px; border-radius: var(--r-md); margin-bottom: 9px; border: 1px solid var(--line);
     background: linear-gradient(100deg, var(--surface) 40%, var(--raised) 50%, var(--surface) 60%);
-    background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
+    background-size: 200% 100%; animation: shimmer 1.4s infinite linear;
+  }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
-  /* composer */
   .composer {
     display: flex; gap: 10px; padding: 14px 18px; flex: none;
     border-bottom: 1px solid var(--line); background: var(--bg);
@@ -101,13 +100,13 @@
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field label { font-size: 11px; font-weight: 500; color: var(--text-3);
                  text-transform: uppercase; letter-spacing: 0.08em; }
-  .field input {
+  .field input, .field textarea {
     background: var(--bg); border: 1px solid var(--line-strong); color: var(--text);
     border-radius: var(--r-sm); padding: 9px 12px; font-size: 14px;
     transition: border-color .15s, box-shadow .15s;
   }
-  .field input::placeholder { color: var(--text-3); }
-  .field input:focus { outline: none; border-color: var(--text);
+  .field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--text);
     box-shadow: 0 0 0 3px var(--raised); }
   #field-claim { flex: 1; }
   #claim { width: 100%; }
@@ -122,7 +121,6 @@
   .btn:active { transform: translateY(1px); }
   .btn:disabled { opacity: .5; cursor: progress; }
 
-  /* feed */
   .feed { flex: 1; overflow-y: auto; padding: 18px; display: flex;
           flex-direction: column; gap: 12px; }
   .empty {
@@ -138,7 +136,6 @@
     border: 1px solid var(--line); padding: 2px 7px; border-radius: 5px;
   }
 
-  /* event cards */
   .event {
     border: 1px solid var(--line); border-radius: var(--r-lg);
     background: var(--bg); overflow: hidden;
@@ -158,10 +155,10 @@
   .badge.consistent { background: var(--green-soft); color: var(--green); }
   .badge.unclear { background: var(--amber-soft); color: var(--amber); }
   .badge.unrelated { background: var(--raised); color: var(--text-3); }
-  .event.contradiction .head { box-shadow: inset 3px 0 0 var(--red); }
-  .event.consistent .head { box-shadow: inset 3px 0 0 var(--green); }
-  .event.unclear .head { box-shadow: inset 3px 0 0 #d9a400; }
-  .event.unrelated .head { box-shadow: inset 3px 0 0 var(--line-strong); }
+  .event.rail-red .head { box-shadow: inset 3px 0 0 var(--red); }
+  .event.rail-green .head { box-shadow: inset 3px 0 0 var(--green); }
+  .event.rail-amber .head { box-shadow: inset 3px 0 0 #d9a400; }
+  .event.rail-flat .head { box-shadow: inset 3px 0 0 var(--line-strong); }
   .event .body { padding: 13px 16px 15px; display: grid; gap: 12px; }
 
   .evidence-block .label {
@@ -177,7 +174,6 @@
     font-weight: 500; margin-right: 8px; font-size: 12.5px; }
   .policy-line, .reason-line { font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
   .policy-line b, .reason-line b { color: var(--text); font-weight: 500; }
-  .reason-line { padding-left: 2px; }
 
   .memoryfact {
     font-size: 12.5px; line-height: 1.6; color: var(--text-2);
@@ -213,7 +209,6 @@
   }
   @keyframes spin { to { transform: rotate(1turn); } }
 
-  /* report bar */
   .reportbar {
     display: flex; align-items: center; gap: 14px; padding: 10px 18px;
     border-top: 1px solid var(--line); background: var(--bg); flex: none;
@@ -247,6 +242,7 @@
   .rline-item .v.unclear { color: var(--amber); }
   .rline-item .v.unrelated { color: var(--text-3); }
 
+  [v-cloak] { display: none; }
   @media (max-width: 900px) {
     .rail { display: none; }
     .status .pill.hide-sm { display: none; }
@@ -257,266 +253,337 @@
 </style>
 </head>
 <body>
-<header>
-  <div class="wordmark">
-    <div class="mark" aria-hidden="true">C</div>
-    <span class="name">ContractCop</span>
-    <span class="tag">grounded compliance guardian</span>
-  </div>
-  <div class="status">
-    <span class="pill" id="pill-zetaris"><span class="dot"></span>Zetaris</span>
-    <span class="pill hide-sm" id="pill-route"><span class="dot"></span>Nemotron via Nightshift</span>
-  </div>
-</header>
-<main>
-  <aside class="rail" aria-label="Contract clauses">
-    <div class="rail-title">Signed contract</div>
-    <div class="rail-sub">Served live from Zetaris. Two sources, one join.</div>
-    <div id="railclauses"></div>
-  </aside>
-  <section class="stage">
-    <form class="composer" id="composer" autocomplete="off">
-      <div class="field" id="field-session">
-        <label for="session">Session</label>
-        <input id="session" placeholder="today" title="same session id shares memory">
+<div id="app" v-cloak>
+  <header>
+    <div class="wordmark">
+      <div class="mark" aria-hidden="true">C</div>
+      <span class="name">ContractCop</span>
+      <span class="tag">grounded compliance guardian</span>
+    </div>
+    <div class="status">
+      <span class="pill" :class="healthClass"><span class="dot"></span>Zetaris</span>
+      <span class="pill hide-sm"><span class="dot"></span>Nemotron via Nightshift</span>
+    </div>
+  </header>
+  <main>
+    <aside class="rail" aria-label="Contract clauses">
+      <div class="rail-title">Signed contract</div>
+      <div class="rail-sub">Served live from Zetaris. Two sources, one join.</div>
+      <div v-if="railLoading" class="rail-skeleton">
+        <div v-for="n in 5" :key="n" class="skeleton"></div>
       </div>
-      <div class="field" id="field-claim">
-        <label for="claim">What the rep just said</label>
-        <input id="claim" placeholder="Type the line, press Enter. ContractCop checks it against the contract." autofocus>
+      <div v-else-if="railError" class="rail-sub" style="color:var(--red)">
+        Couldn't load clauses. Is Zetaris running?
+        <button class="btn-ghost" style="margin-left:8px" @click="loadRail">Retry</button>
       </div>
-      <button class="btn" id="send" type="submit">Check</button>
-    </form>
-    <div class="feed" id="feed" aria-live="polite">
-      <div class="empty" id="empty">
-        <div class="glyph">§</div>
-        <h2>No claims checked yet</h2>
-        <p>Every line the rep says gets routed by Nemotron, grounded in the
-           contract clauses stored in Zetaris, and judged with an evidence chain.</p>
-        <p class="try">Try: <code>We'll give you the 10% automatic discount, no approval needed.</code></p>
+      <template v-else>
+        <button v-for="c in clauses" :key="c.clause_id" class="clause"
+                :class="{ open: openClause === c.clause_id }"
+                :aria-expanded="openClause === c.clause_id" @click="toggleClause(c.clause_id)">
+          <div class="top"><span class="cid">§{{ c.clause_id }}</span><span class="sec">{{ c.section }}</span></div>
+          <div class="txt">{{ c.text }}</div>
+          <div class="policy-line">Sales policy <span style="font-family:var(--mono)">{{ c.policy_id }}</span>: {{ c.policy_rule }}</div>
+        </button>
+      </template>
+    </aside>
+    <section class="stage">
+      <form class="composer" autocomplete="off" @submit.prevent="sendClaim">
+        <div class="field" id="field-session">
+          <label for="session">Session</label>
+          <input id="session" v-model="session" placeholder="today" title="same session id shares memory">
+        </div>
+        <div class="field" id="field-claim">
+          <label for="claim">What the rep just said</label>
+          <input id="claim" v-model="claimDraft" ref="claimInput"
+                 placeholder="Type the line, press Enter. ContractCop checks it against the contract.">
+        </div>
+        <button class="btn" id="send" type="submit" :disabled="busy">Check</button>
+      </form>
+      <div class="feed" ref="feedEl" aria-live="polite">
+        <div class="empty" v-if="!events.length && !busy && !railError">
+          <div class="glyph">§</div>
+          <h2>No claims checked yet</h2>
+          <p>Every line the rep says gets routed by Nemotron, grounded in the
+             contract clauses stored in Zetaris, and judged with an evidence chain.</p>
+          <p class="try">Try: <code>We'll give you the 10% automatic discount, no approval needed.</code></p>
+        </div>
+        <template v-for="(e, i) in events" :key="i">
+          <div class="pending" v-if="e.kind === 'pending'">
+            <span class="spin" aria-hidden="true"></span><span>{{ e.text }}</span>
+          </div>
+          <div class="errorline" v-else-if="e.kind === 'error'">
+            {{ e.text }}<small>{{ e.sub }}</small>
+          </div>
+          <event-card v-else :e="e"></event-card>
+        </template>
+      </div>
+      <div class="reportbar">
+        <button class="btn-ghost" type="button" @click="trOpen = true">Check a transcript</button>
+        <button class="btn-ghost" type="button" @click="openReport">End-of-call report</button>
+        <span id="rline" v-if="totalClaims">
+          <span class="num">{{ totalClaims }}</span> claims ·
+          <span class="num bad-num">{{ counts.contradiction }}</span> contradictions ·
+          <span class="num">{{ counts.consistent }}</span> consistent ·
+          <span class="num">{{ counts.unclear }}</span> unclear
+        </span>
+        <span id="rline" v-else>no claims yet</span>
+      </div>
+    </section>
+  </main>
+
+  <dialog ref="trDlg" @close="trOpen = false">
+    <h3>Check a call transcript</h3>
+    <div class="sub">Upload a file or paste the transcript. Timestamps and speaker
+      labels are parsed; rep-side lines get checked one by one.</div>
+    <div class="field" style="margin-bottom:12px">
+      <label for="trfile">Transcript file (.txt, .md, .vtt, .srt)</label>
+      <input id="trfile" type="file" accept=".txt,.md,.vtt,.srt,.csv,text/plain" @change="loadTranscriptFile">
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label for="trtext">Or paste it here</label>
+      <textarea id="trtext" rows="8" v-model="trText" style="width:100%;font-size:13px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--bg);color:var(--text);resize:vertical"></textarea>
+    </div>
+    <p style="display:flex;gap:10px;align-items:center">
+      <button class="btn" type="button" :disabled="trBusy" @click="runTranscript">Check transcript</button>
+      <button class="btn-ghost" type="button" @click="trOpen = false">Cancel</button>
+      <span style="font-size:12px;color:var(--text-3)">{{ trInfo }}</span>
+    </p>
+  </dialog>
+
+  <dialog ref="rDlg">
+    <h3>End-of-call report</h3>
+    <div class="sub">{{ reportSub }}</div>
+    <div v-if="reportTimeline.length">
+      <div class="rline-item" v-for="(h, i) in reportTimeline" :key="i">
+        <span class="t">{{ h.clock }}</span>
+        <span class="v" :class="h.verdict">{{ h.verdict }}</span>
+        <span>"{{ h.claim }}"{{ h.clause_id ? ", §" + h.clause_id : "" }}</span>
       </div>
     </div>
-    <div class="reportbar">
-      <button class="btn-ghost" id="transcriptbtn" type="button">Check a transcript</button>
-      <button class="btn-ghost" id="reportbtn" type="button">End-of-call report</button>
-      <span id="rline">no claims yet</span>
-    </div>
-  </section>
-</main>
-<dialog id="trdlg" aria-labelledby="trdlg-title">
-  <h3 id="trdlg-title">Check a call transcript</h3>
-  <div class="sub">Upload a file or paste the transcript. Timestamps and speaker
-    labels are parsed; rep-side lines get checked one by one.</div>
-  <div class="field" style="margin-bottom:12px">
-    <label for="trfile">Transcript file (.txt, .md, .vtt, .srt)</label>
-    <input id="trfile" type="file" accept=".txt,.md,.vtt,.srt,.csv,text/plain">
-  </div>
-  <div class="field" style="margin-bottom:14px">
-    <label for="trtext">Or paste it here</label>
-    <textarea id="trtext" rows="8" style="width:100%;font:inherit;font-size:13px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--bg);color:var(--text);resize:vertical"></textarea>
-  </div>
-  <p style="display:flex;gap:10px;align-items:center">
-    <button class="btn" id="trgo" type="button">Check transcript</button>
-    <button class="btn-ghost" type="button" onclick="document.getElementById('trdlg').close()">Cancel</button>
-    <span id="trinfo" style="font-size:12px;color:var(--text-3)"></span>
-  </p>
-</dialog>
-<dialog id="dlg" aria-labelledby="dlg-title">
-  <h3 id="dlg-title">End-of-call report</h3>
-  <div class="sub" id="dlg-sub"></div>
-  <div id="dlgbody"></div>
-  <p style="margin-top:16px"><button class="btn-ghost" type="button" onclick="document.getElementById('dlg').close()">Close</button></p>
-</dialog>
+    <p class="rail-sub" v-else-if="!reportLoading">No claims in this session yet.</p>
+    <p style="margin-top:16px"><button class="btn-ghost" type="button" @click="rDlg.close()">Close</button></p>
+  </dialog>
+</div>
 
 <script>
-const $ = id => document.getElementById(id);
-let count = { contradiction: 0, consistent: 0, unclear: 0, unrelated: 0 };
+const { createApp, reactive, ref, computed, nextTick } = Vue;
 
-function esc(s) {
-  return (s ?? '').replace(/[&<>"]/g,
-    c => ({'&':'\u0026amp;','<':'\u0026lt;','>':'\u0026gt;','"':'\u0026quot;'}[c]));
-}
-function today() { return new Date().toISOString().slice(0, 10); }
+createApp({
+  components: {
+    "event-card": {
+      props: { e: Object },
+      template: `
+      <article class="event" :class="railClass">
+        <div class="head">
+          <span class="badge" :class="e.verdict">{{ e.verdict }}</span>
+          <span class="said">"{{ e.claim }}"</span>
+        </div>
+        <div class="body" v-if="hasBody">
+          <div class="evidence-block" v-if="e.clause">
+            <div class="label">Evidence from Zetaris</div>
+            <blockquote class="clausequote">
+              <span class="cid">§{{ e.clause.clause_id }}</span>{{ e.clause.text }}
+            </blockquote>
+          </div>
+          <div class="policy-line" v-if="e.policy">Sales policy <b>{{ e.policy.policy_id }}</b>: {{ e.policy.rule }}</div>
+          <div class="reason-line" v-if="e.reason"><b>Why:</b> {{ e.reason }}</div>
+          <div class="evidence-block" v-if="memoryLines.length">
+            <div class="label">H-Mem, remembered claims</div>
+            <div class="memoryfact" v-for="(m, i) in memoryLines" :key="i">
+              <span class="when">{{ m.when }}</span>
+              <span>{{ m.text }}</span>
+            </div>
+          </div>
+          <div class="evidence-block" v-if="e.sql">
+            <div class="label">Query against Zetaris</div>
+            <div class="sqlblock">{{ e.sql }}</div>
+          </div>
+          <div class="errorline" v-if="e.error">Error, treated as unclear and not an accusation.<small>{{ e.error }}</small></div>
+          <div class="metaline" v-if="e.model">
+            <span class="chip">{{ e.model }}</span>
+            <span class="chip" v-for="h in e.hops" :key="h.hop" :class="{ hot: h.hop === 'verdict' }">{{ h.hop }}{{ h.ms != null ? " " + h.ms + "ms" : "" }}</span>
+            <span class="chip hot">total {{ e.ms }}ms</span>
+          </div>
+        </div>
+      </article>`,
+      computed: {
+        railClass() {
+          return { contradiction: "rail-red", consistent: "rail-green", unclear: "rail-amber", unrelated: "rail-flat" }[this.e.verdict] || "";
+        },
+        hasBody() {
+          const e = this.e;
+          return e.clause || e.policy || e.reason || e.sql || e.error ||
+                 (e.memory && (e.memory.same_session.length || e.memory.earlier_calls.length)) || e.model;
+        },
+        memoryLines() {
+          const e = this.e, out = [];
+          for (const m of (e.memory?.same_session || []))
+            out.push({ when: m.when, text: "earlier this call: \"" + m.claim + "\" → " + m.verdict + (m.clause_id ? " §" + m.clause_id : "") });
+          for (const m of (e.memory?.earlier_calls || []))
+            out.push({ when: m.date, text: "earlier call: \"" + m.claim + "\" → " + m.verdict + (m.clause_id ? " §" + m.clause_id : "") });
+          return out;
+        },
+      },
+    },
+  },
+  setup() {
+    const clauses = ref([]);
+    const railLoading = ref(true);
+    const railError = ref(false);
+    const openClause = ref(null);
+    const events = reactive([]);
+    const counts = reactive({ contradiction: 0, consistent: 0, unclear: 0, unrelated: 0 });
+    const session = ref("");
+    const claimDraft = ref("");
+    const busy = ref(false);
+    const healthClass = ref("pill");
+    const claimInput = ref(null);
+    const feedEl = ref(null);
+    const trDlg = ref(null);
+    const rDlg = ref(null);
+    const trOpen = ref(false);
+    const trText = ref("");
+    const trInfo = ref("");
+    const trBusy = ref(false);
+    const reportSub = ref("");
+    const reportTimeline = ref([]);
+    const reportLoading = ref(false);
 
-async function health() {
-  const pill = $('pill-zetaris');
-  try {
-    const d = await (await fetch('/api/health')).json();
-    pill.classList.toggle('ok', d.zetaris === 'ok');
-    pill.classList.toggle('bad', d.zetaris !== 'ok');
-  } catch { pill.classList.add('bad'); }
-}
+    const today = () => new Date().toISOString().slice(0, 10);
+    const sessionNow = () => (session.value = session.value.trim() || today());
 
-async function loadRail() {
-  const host = $('railclauses');
-  host.innerHTML = '<div class="rail-skeleton">' +
-    '<div class="clause"></div>'.repeat(5) + '</div>';
-  try {
-    const d = await (await fetch('/api/clauses')).json();
-    if (!d.clauses) throw new Error(d.error || 'unavailable');
-    host.innerHTML = '';
-    for (const c of d.clauses) {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'clause';
-      b.setAttribute('aria-expanded', 'false');
-      b.innerHTML =
-        `<div class="top"><span class="cid">§${c.clause_id}</span><span class="sec">${esc(c.section)}</span></div>` +
-        `<div class="txt">${esc(c.text)}</div>` +
-        `<div class="policy-line">Sales policy <span style="font-family:var(--mono)">${esc(c.policy_id)}</span>: ${esc(c.policy_rule)}</div>`;
-      b.addEventListener('click', () => {
-        b.classList.toggle('open');
-        b.setAttribute('aria-expanded', b.classList.contains('open'));
+    const totalClaims = computed(() =>
+      counts.contradiction + counts.consistent + counts.unclear + counts.unrelated);
+
+    async function health() {
+      try {
+        const d = await (await fetch("/api/health")).json();
+        healthClass.value = "pill " + (d.zetaris === "ok" ? "ok" : "bad");
+      } catch { healthClass.value = "pill bad"; }
+    }
+
+    async function loadRail() {
+      railLoading.value = true; railError.value = false;
+      try {
+        const d = await (await fetch("/api/clauses")).json();
+        if (!d.clauses) throw new Error(d.error || "unavailable");
+        clauses.value = d.clauses;
+      } catch { railError.value = true; }
+      railLoading.value = false;
+    }
+
+    function toggleClause(id) { openClause.value = openClause.value === id ? null : id; }
+
+    function pushEvent(e) {
+      events.push(e);
+      nextTick(() => {
+        if (feedEl.value) feedEl.value.scrollTop = feedEl.value.scrollHeight;
       });
-      host.appendChild(b);
     }
-  } catch (e) {
-    host.innerHTML = `<div class="rail-sub" style="color:var(--red)">Couldn't load clauses. Is Zetaris running? ` +
-      `<button class="btn-ghost" type="button" style="margin-left:8px" onclick="loadRail()">Retry</button></div>`;
-  }
-}
 
-function chip(label, hot) { return `<span class="chip${hot ? ' hot' : ''}">${esc(label)}</span>`; }
-
-function eventCard(e) {
-  const el = document.createElement('article');
-  el.className = 'event';
-  let body = '';
-  if (e.clause) {
-    body += `<div class="evidence-block"><div class="label">Evidence from Zetaris</div>
-      <blockquote class="clausequote"><span class="cid">§${esc(e.clause.clause_id)}</span>${esc(e.clause.text)}</blockquote></div>`;
-  }
-  if (e.policy) body += `<div class="policy-line">Sales policy <b>${esc(e.policy.policy_id)}</b>: ${esc(e.policy.rule)}</div>`;
-  if (e.reason) body += `<div class="reason-line"><b>Why:</b> ${esc(e.reason)}</div>`;
-  const mems = [
-    ...(e.memory?.same_session || []).map(m =>
-      `<div class="memoryfact"><span class="when">${esc(m.when)}</span><span>earlier this call: “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</span></div>`),
-    ...(e.memory?.earlier_calls || []).map(m =>
-      `<div class="memoryfact"><span class="when">${esc(m.date)}</span><span>earlier call: “${esc(m.claim)}” → ${esc(m.verdict)}${m.clause_id ? ' §' + esc(m.clause_id) : ''}</span></div>`),
-  ].join('');
-  if (mems) body += `<div class="evidence-block"><div class="label">H-Mem, remembered claims</div>${mems}</div>`;
-  if (e.sql) body += `<div class="evidence-block"><div class="label">Query against Zetaris</div><div class="sqlblock">${esc(e.sql)}</div></div>`;
-  if (e.error) body += `<div class="errorline">Error, treated as unclear and not an accusation.<small>${esc(e.error)}</small></div>`;
-  const hops = (e.hops || []).map(h => chip(`${h.hop}${h.ms != null ? ' ' + h.ms + 'ms' : ''}`, h.hop === 'verdict')).join('');
-  if (hops || e.model) body += `<div class="metaline">${chip(e.model)}${hops}${chip('total ' + e.ms + 'ms', true)}</div>`;
-  el.innerHTML =
-    `<div class="head"><span class="badge ${e.verdict}">${e.verdict}</span>` +
-    `<span class="said">“${esc(e.claim)}”</span></div>` +
-    (body ? `<div class="body">${body}</div>` : '');
-  return el;
-}
-
-$('composer').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const input = $('claim');
-  const text = input.value.trim();
-  if (!text || $('send').disabled) return;
-  const session = $('session').value.trim() || today();
-  $('session').value = session;
-  input.value = '';
-  $('empty')?.remove();
-  const pending = document.createElement('div');
-  pending.className = 'pending';
-  pending.innerHTML = `<span class="spin" aria-hidden="true"></span>
-    <span>Routing with Nemotron, fetching clauses from Zetaris, judging the claim…</span>`;
-  $('feed').appendChild(pending);
-  $('send').disabled = true;
-  try {
-    const e = await (await fetch('/api/claim', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session, text }),
-    })).json();
-    pending.remove();
-    $('feed').appendChild(eventCard(e));
-    count[e.verdict] = (count[e.verdict] || 0) + 1;
-    updateRline();
-  } catch (err) {
-    pending.remove();
-    const fail = document.createElement('div');
-    fail.className = 'errorline';
-    fail.innerHTML = `Request failed: ${esc(String(err))}<small>Is the server still running? Retry the line.</small>`;
-    $('feed').appendChild(fail);
-  } finally {
-    $('send').disabled = false;
-    input.focus();
-  }
-});
-
-function updateRline() {
-  const total = Object.values(count).reduce((a, b) => a + b, 0);
-  $('rline').innerHTML = total === 0 ? 'no claims yet' :
-    `<span class="num">${total}</span> claims · <span class="num bad-num">${count.contradiction}</span> contradictions · ` +
-    `<span class="num">${count.consistent}</span> consistent · <span class="num">${count.unclear}</span> unclear`;
-}
-
-$('reportbtn').addEventListener('click', async () => {
-  const session = $('session').value.trim() || today();
-  $('dlg-sub').textContent = 'loading…';
-  $('dlg').showModal();
-  const d = await (await fetch('/api/report?session=' + encodeURIComponent(session))).json();
-  $('dlg-sub').textContent = `Session ${d.session}: ${d.claims_total} claims, ${d.contradictions} contradictions`;
-  $('dlgbody').innerHTML = d.timeline.length
-    ? d.timeline.map(h =>
-        `<div class="rline-item"><span class="t">${new Date(h.ts * 1000).toLocaleTimeString()}</span>` +
-        `<span class="v ${h.verdict}">${h.verdict}</span>` +
-        `<span>“${esc(h.claim)}”${h.clause_id ? ', §' + esc(h.clause_id) : ''}</span></div>`).join('')
-    : '<p class="rail-sub">No claims in this session yet.</p>';
-});
-
-health(); loadRail(); updateRline();
-
-/* ---------- transcript upload / paste ---------- */
-$('transcriptbtn').addEventListener('click', () => {
-  $('trinfo').textContent = '';
-  $('trdlg').showModal();
-});
-
-$('trfile').addEventListener('change', async ev => {
-  const f = ev.target.files[0];
-  if (!f) return;
-  if (f.size > 1024 * 1024) { $('trinfo').textContent = 'File too large (1 MB max).'; return; }
-  $('trtext').value = await f.text();
-  $('trinfo').textContent = `Loaded ${f.name} (${Math.ceil(f.size / 1024)} KB)`;
-});
-
-$('trgo').addEventListener('click', async () => {
-  const text = $('trtext').value.trim();
-  const session = $('session').value.trim() || today();
-  if (!text) { $('trinfo').textContent = 'Nothing to check yet. Pick a file or paste the transcript.'; return; }
-  $('session').value = session;
-  $('trgo').disabled = true;
-  $('trinfo').textContent = 'Parsing…';
-  try {
-    const parsed = await (await fetch('/api/transcript', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session, text }),
-    })).json();
-    if (!parsed.total) { $('trinfo').textContent = 'No claim lines found in that transcript.'; return; }
-    $('trdlg').close();
-    $('empty')?.remove();
-    const prog = document.createElement('div');
-    prog.className = 'pending';
-    prog.innerHTML = `<span class="spin" aria-hidden="true"></span>
-      <span id="progtext">Checking transcript: 0 of ${parsed.total} lines…</span>`;
-    $('feed').appendChild(prog);
-    for (let i = 0; i < parsed.lines.length; i++) {
-      const e = await (await fetch('/api/claim', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session, text: parsed.lines[i] }),
-      })).json();
-      $('feed').appendChild(eventCard(e));
-      count[e.verdict] = (count[e.verdict] || 0) + 1;
-      updateRline();
-      $('progtext').textContent = `Checking transcript: ${i + 1} of ${parsed.total} lines…`;
+    async function sendClaim() {
+      const text = claimDraft.value.trim();
+      if (!text || busy.value) return;
+      sessionNow();
+      claimDraft.value = "";
+      const pending = { kind: "pending", text: "Routing with Nemotron, fetching clauses from Zetaris, judging the claim…" };
+      pushEvent(pending);
+      busy.value = true;
+      try {
+        const e = await (await fetch("/api/claim", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session: session.value, text }),
+        })).json();
+        Object.assign(pending, e, { kind: "event" });
+        counts[e.verdict] = (counts[e.verdict] || 0) + 1;
+      } catch (err) {
+        Object.assign(pending, { kind: "error", text: "Request failed: " + err,
+          sub: "Is the server still running? Retry the line." });
+      } finally { busy.value = false; claimInput.value?.focus(); }
     }
-    prog.remove();
-    const last = $('feed').lastElementChild;
-    last && last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } catch (err) {
-    $('trinfo').textContent = 'Failed: ' + err;
-  } finally {
-    $('trgo').disabled = false;
-    $('trtext').value = ''; $('trfile').value = '';
-  }
-});
+
+    async function loadTranscriptFile(ev) {
+      const f = ev.target.files[0];
+      if (!f) return;
+      if (f.size > 1024 * 1024) { trInfo.value = "File too large (1 MB max)."; return; }
+      trText.value = await f.text();
+      trInfo.value = "Loaded " + f.name + " (" + Math.ceil(f.size / 1024) + " KB)";
+    }
+
+    async function runTranscript() {
+      const text = trText.value.trim();
+      if (!text) { trInfo.value = "Nothing to check yet. Pick a file or paste the transcript."; return; }
+      sessionNow();
+      trBusy.value = true; trInfo.value = "Parsing…";
+      try {
+        const parsed = await (await fetch("/api/transcript", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session: session.value, text }),
+        })).json();
+        if (!parsed.total) { trInfo.value = "No claim lines found in that transcript."; return; }
+        trOpen.value = false;
+        const pending = { kind: "pending", text: "Checking transcript: 0 of " + parsed.total + " lines…" };
+        pushEvent(pending);
+        for (let i = 0; i < parsed.lines.length; i++) {
+          const e = await (await fetch("/api/claim", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session: session.value, text: parsed.lines[i] }),
+          })).json();
+          const card = Object.assign({}, e, { kind: "event" });
+          events.splice(events.length - 1, 0, card);
+          counts[e.verdict] = (counts[e.verdict] || 0) + 1;
+          pending.text = "Checking transcript: " + (i + 1) + " of " + parsed.total + " lines…";
+          nextTick(() => { if (feedEl.value) feedEl.value.scrollTop = feedEl.value.scrollHeight; });
+        }
+        const idx = events.indexOf(pending);
+        if (idx >= 0) events.splice(idx, 1);
+      } catch (err) {
+        trInfo.value = "Failed: " + err;
+      } finally {
+        trBusy.value = false; trText.value = "";
+        document.getElementById("trfile").value = "";
+      }
+    }
+
+    async function openReport() {
+      sessionNow();
+      reportSub.value = "loading…";
+      reportTimeline.value = [];
+      reportLoading.value = true;
+      rDlg.value.showModal();
+      try {
+        const d = await (await fetch("/api/report?session=" + encodeURIComponent(session.value))).json();
+        reportSub.value = "Session " + d.session + ": " + d.claims_total + " claims, " + d.contradictions + " contradictions";
+        reportTimeline.value = d.timeline.map(h => ({
+          clock: new Date(h.ts * 1000).toLocaleTimeString(),
+          verdict: h.verdict, claim: h.claim, clause_id: h.clause_id,
+        }));
+      } catch (err) {
+        reportSub.value = "Failed to load the report: " + err;
+      }
+      reportLoading.value = false;
+    }
+
+    // keep the native dialogs in sync with reactive state
+    function watchDialogs() {
+      const sync = () => {
+        if (trOpen.value) trDlg.value?.showModal();
+        else if (trDlg.value?.open) trDlg.value.close();
+      };
+      setInterval(sync, 200);
+    }
+
+    health(); loadRail(); watchDialogs();
+
+    return {
+      clauses, railLoading, railError, openClause, events, counts, session,
+      claimDraft, busy, healthClass, totalClaims,
+      claimInput, feedEl, trDlg, rDlg, trOpen, trText, trInfo, trBusy,
+      reportSub, reportTimeline, reportLoading,
+      loadRail, toggleClause, sendClaim, loadTranscriptFile, runTranscript, openReport,
+    };
+  },
+}).mount("#app");
 </script>
 </body>
 </html>
