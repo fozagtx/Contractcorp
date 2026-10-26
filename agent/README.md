@@ -45,7 +45,7 @@ the verdict is `unclear`, never an accusation.
 
 - **Within a call:** the rep repeats a contradicted commitment → the new
   alert carries the earlier claim with its timestamp and verdict
-  ("earlier this call at 18:35 you said X, contradiction §3.1").
+  ("earlier this call at 18:35 you said X, contradiction Clause 3.1").
 - **Across calls:** a later session recalls the same contradicted
   commitments from previous sessions; memory survives restarts
   (SQLite at `agent/memory.db`), which is exactly the persistence the
@@ -56,16 +56,16 @@ the verdict is `unclear`, never an accusation.
 
 ## Measured results (honest, from live runs)
 
-- **Contradictions: 5/5 caught, each with the correct clause ID** (§3.1
-  automatic discount, §4.2 24/7-on-Standard, §9.1 99.9%-on-Standard,
-  §8.3 early-termination refund, §6.1 region move on demand). Reproduce:
+- **Contradictions: 5/5 caught, each with the correct clause ID** (Clause 3.1
+  automatic discount, Clause 4.2 24/7-on-Standard, Clause 9.1 99.9%-on-Standard,
+  Clause 8.3 early-termination refund, Clause 6.1 region move on demand). Reproduce:
   `pytest agent/tests/test_zetaris.py` (needs Zetaris + Nightshift up).
-- **Consistent claims: 3/3, zero false accusations** (§4.2, §3.1, §8.3).
+- **Consistent claims: 3/3, zero false accusations** (Clause 4.2, Clause 3.1, Clause 8.3).
 - **Unrelated lines: 2/2** correctly ignored (no clause lookup at all).
 - **Fixture accuracy: 10/12 strict.** The two misses are the fixture's
   "unclear" labels: "we might be able to do something on the price" and
   "our uptime is really good, trust me" were judged contradictions citing
-  §3.1 (verbal price commitments) and §9.1 (uptime commitments above
+  Clause 3.1 (verbal price commitments) and Clause 9.1 (uptime commitments above
   target). Defensible readings: both clauses literally prohibit verbal
   commitments, reported as-is rather than tuned away.
 - **Latency: median 2.7–2.9 s per claim** end to end (route hop + Zetaris
@@ -106,12 +106,12 @@ agent/
 
 1. Open the app; the rail loads the five clauses straight from Zetaris.
 2. Type: `And of course we will give you the 10 percent automatic discount
-   on this deal, no paperwork needed.` → alert card: contradiction §3.1,
+   on this deal, no paperwork needed.` → alert card: contradiction Clause 3.1,
    verbatim clause, POL-01, the SQL that found it, model + latencies.
 3. Type: `On the Standard Plan, support is available 9:00 to 17:00, Monday
-   through Friday.` → consistent §4.2. (Errors never accuse: kill Nightshift
+   through Friday.` → consistent Clause 4.2. (Errors never accuse: kill Nightshift
    mid-call and the next line is `unclear`, with the error shown.)
-4. Type the discount line again, reworded → contradiction §3.1 **with an
+4. Type the discount line again, reworded → contradiction Clause 3.1 **with an
    H-Mem memory ref to the earlier claim in the same call**.
 5. Change the session id and repeat → the alert cites the earlier **call**.
 6. End-of-call report → timeline of every claim and verdict.
